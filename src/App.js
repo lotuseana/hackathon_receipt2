@@ -269,7 +269,7 @@ function App() {
               </div>
             </div>
           )}
-          {ocrText && !structuredData && !error && (
+          {ocrText && !structuredData && !error && !isExtracting && (
             <div className="data-display">
               <h3>Extracted Text:</h3>
               <pre>
