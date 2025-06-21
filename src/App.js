@@ -75,47 +75,52 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Receipt Budget Assistant</h1>
-      <CameraCapture onCapture={(file) => {
-        setSelectedFile(file);
-        setOcrText(null);
-        setStructuredData(null);
-        setError(null);
-      }} />
-      <input 
-        type="file" 
-        accept="image/png, image/jpeg" 
-        onChange={handleFileSelect}
-      />
-      {selectedFile && (
-        <div>
-          <p>Selected: {selectedFile.name}</p>
-          <button onClick={handleRecognize} disabled={isLoading}>
-            {isLoading ? 'Processing...' : 'Extract & Analyze'}
-          </button>
-        </div>
-      )}
-      {error && (
-        <div style={{ color: 'red', marginTop: '10px' }}>
-          <p>Error: {error}</p>
-        </div>
-      )}
-      {structuredData && (
-        <div>
-          <h3>Structured Data:</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '10px', borderRadius: '5px' }}>
-            {JSON.stringify(structuredData, null, 2)}
-          </pre>
-        </div>
-      )}
-      {ocrText && !structuredData && (
-        <div>
-          <h3>Extracted Text:</h3>
-          <pre style={{ whiteSpace: 'pre-wrap', background: '#f4f4f4', padding: '10px', borderRadius: '5px' }}>
-            {ocrText}
-          </pre>
-        </div>
-      )}
+      <div className="main-card">
+        <h1>Receipt Budget Assistant</h1>
+        <CameraCapture onCapture={(file) => {
+          setSelectedFile(file);
+          setOcrText(null);
+          setStructuredData(null);
+          setError(null);
+        }} />
+        <label className="file-label" htmlFor="file-upload">Choose Image</label>
+        <input
+          id="file-upload"
+          className="file-input"
+          type="file"
+          accept="image/png, image/jpeg"
+          onChange={handleFileSelect}
+        />
+        {selectedFile && (
+          <div>
+            <p>Selected: {selectedFile.name}</p>
+            <button onClick={handleRecognize} disabled={isLoading}>
+              {isLoading ? 'Processing...' : 'Extract & Analyze'}
+            </button>
+          </div>
+        )}
+        {error && (
+          <div className="error-message">
+            <p>Error: {error}</p>
+          </div>
+        )}
+        {structuredData && (
+          <div>
+            <h3>Structured Data:</h3>
+            <pre>
+              {JSON.stringify(structuredData, null, 2)}
+            </pre>
+          </div>
+        )}
+        {ocrText && !structuredData && (
+          <div>
+            <h3>Extracted Text:</h3>
+            <pre>
+              {ocrText}
+            </pre>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
