@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
 import './App.css';
+import CameraCapture from './CameraCapture';
 
 const anthropic = new Anthropic({
   apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
@@ -75,6 +76,12 @@ function App() {
   return (
     <div className="App">
       <h1>Receipt Budget Assistant</h1>
+      <CameraCapture onCapture={(file) => {
+        setSelectedFile(file);
+        setOcrText(null);
+        setStructuredData(null);
+        setError(null);
+      }} />
       <input 
         type="file" 
         accept="image/png, image/jpeg" 
