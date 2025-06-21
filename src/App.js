@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabase } from './supabaseClient';
 import CameraCapture from './CameraCapture';
+import PieChart from './PieChart';
 import './App.css';
 
 const anthropic = new Anthropic({
@@ -17,6 +18,7 @@ function App() {
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [cameraActive, setCameraActive] = useState(false);
 
   // Handle image preview
   useEffect(() => {
@@ -68,6 +70,26 @@ function App() {
   };
 
   const handleCancel = () => {
+    setSelectedFile(null);
+    setOcrText(null);
+    setStructuredData(null);
+    setError(null);
+  };
+
+  const handleCapture = (file) => {
+    setSelectedFile(file);
+    setOcrText(null);
+    setStructuredData(null);
+    setError(null);
+    setCameraActive(false);
+  };
+
+  const handleCameraCancel = () => {
+    setCameraActive(false);
+  };
+
+  const handleCameraStart = () => {
+    setCameraActive(true);
     setSelectedFile(null);
     setOcrText(null);
     setStructuredData(null);
@@ -165,89 +187,106 @@ function App() {
 
   return (
     <div className="App">
-      <div className="main-card">
-        <h1>Receipt Budget Assistant</h1>
-        <CameraCapture onCapture={(file) => {
-          setSelectedFile(file);
-          setOcrText(null);
-          setStructuredData(null);
-          setError(null);
-        }} />
-        <span className="or-divider">OR</span>
-        <label className="file-label" htmlFor="file-upload">Choose Image</label>
-        <input
-          id="file-upload"
-          className="file-input"
-          type="file"
-          accept="image/png, image/jpeg"
-          onChange={handleFileSelect}
-        />
-        {selectedFile && (
-          <div className="selection-area">
-            <div className="image-preview">
-              <img src={previewUrl} alt="Selected preview" />
-            </div>
-            <p>Selected: {selectedFile.name}</p>
-            <div className="action-buttons">
-              <button onClick={handleRecognize} disabled={isLoading}>
-                {isLoading ? 'Processing...' : 'Extract & Analyze'}
-              </button>
-              <button onClick={handleCancel} className="cancel-button">
-                Cancel
-              </button>
-            </div>
+      <h1>Receipt Budget Assistant</h1>
+      <div className="content-row">
+        <div className="main-card">
+          <div className="upload-buttons-container">
+            <button 
+              className="camera-button" 
+              onClick={handleCameraStart}
+              disabled={cameraActive}
+            >
+              Take a Picture
+            </button>
+            <label className="file-label" htmlFor="file-upload">Choose Image</label>
+            <input
+              id="file-upload"
+              className="file-input"
+              type="file"
+              accept="image/png, image/jpeg"
+              onChange={handleFileSelect}
+            />
           </div>
-        )}
-        {error && (
-          <div className="error-message">
-            <p>Error: {error}</p>
-          </div>
-        )}
-        {structuredData && (
-          <div className="data-display">
-            <h3>Receipt Information:</h3>
-            <div className="receipt-info">
-              <div className="info-row">
-                <span className="info-label">Store Name:</span>
-                <span className="info-value">{structuredData.storeName || 'Not found'}</span>
+          
+          {cameraActive && (
+            <CameraCapture
+              onCapture={handleCapture}
+              onCancel={handleCameraCancel}
+            />
+          )}
+          
+          {selectedFile && (
+            <div className="selection-area">
+              <div className="image-preview">
+                <img src={previewUrl} alt="Selected preview" />
               </div>
-              <div className="info-row">
-                <span className="info-label">Total to Add:</span>
-                <span className="info-value">${structuredData.total || 'Not found'}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Category:</span>
-                <span className="info-value">{structuredData.category || 'Not found'}</span>
+              <p>Selected: {selectedFile.name}</p>
+              <div className="action-buttons">
+                <button onClick={handleRecognize} disabled={isLoading}>
+                  {isLoading ? 'Processing...' : 'Extract & Analyze'}
+                </button>
+                <button onClick={handleCancel} className="cancel-button">
+                  Cancel
+                </button>
               </div>
             </div>
-          </div>
-        )}
-        {ocrText && !structuredData && !error && (
-          <div className="data-display">
-            <h3>Extracted Text:</h3>
-            <pre>
-              {ocrText}
-            </pre>
-          </div>
-        )}
-      </div>
-      <div className="categories-display-card">
-        <div className="category-header">
-          <h2>Category Spending</h2>
-          <button onClick={handleReset} className="reset-button" disabled={isLoading}>Reset All</button>
+          )}
+          {error && (
+            <div className="error-message">
+              <p>Error: {error}</p>
+            </div>
+          )}
+          {structuredData && (
+            <div className="data-display">
+              <h3>Receipt Information:</h3>
+              <div className="receipt-info">
+                <div className="info-row">
+                  <span className="info-label">Store Name:</span>
+                  <span className="info-value">{structuredData.storeName || 'Not found'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Total to Add:</span>
+                  <span className="info-value">${structuredData.total || 'Not found'}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Category:</span>
+                  <span className="info-value">{structuredData.category || 'Not found'}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          {ocrText && !structuredData && !error && (
+            <div className="data-display">
+              <h3>Extracted Text:</h3>
+              <pre>
+                {ocrText}
+              </pre>
+            </div>
+          )}
         </div>
-        <ul>
-          {categories.map(cat => (
-            <li key={cat.id}>
-              <span>{cat.name}</span>
-              <strong>${(cat.total_spent || 0).toFixed(2)}</strong>
-            </li>
-          ))}
-        </ul>
-        <hr className="total-divider" />
-        <div className="grand-total">
-          <span>Total Spending</span>
-          <strong>${grandTotal.toFixed(2)}</strong>
+        <div className="spending-breakdown-card">
+          <div className="category-header">
+            <h2>Spending Breakdown</h2>
+            <button onClick={handleReset} className="reset-button" disabled={isLoading}>Reset All</button>
+          </div>
+          <div className="chart-section">
+            <PieChart categories={categories} />
+          </div>
+          <div className="categories-list">
+            <ul>
+              {categories.map(cat => (
+                <li key={cat.id}>
+                  <span>{cat.name}</span>
+                  <strong>${(cat.total_spent || 0).toFixed(2)}</strong>
+                </li>
+              ))}
+            </ul>
+            <hr className="total-divider" />
+            <div className="grand-total">
+              <span>Total Spending</span>
+              <strong>${grandTotal.toFixed(2)}</strong>
+            </div>
+          </div>
         </div>
       </div>
     </div>

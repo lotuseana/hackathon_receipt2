@@ -1,29 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-function CameraCapture({ onCapture }) {
-  const [cameraActive, setCameraActive] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
+function CameraCapture({ onCapture, onCancel }) {
   const [error, setError] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
-
-  const startCamera = async () => {
-    setError(null);
-    setCapturedImage(null);
-    setCameraActive(true);
-  };
 
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
       streamRef.current = null;
     }
-    setCameraActive(false);
+    if (onCancel) onCancel();
   };
 
+  // Automatically start camera when component mounts
   useEffect(() => {
-    if (!cameraActive) return;
     let isMounted = true;
     (async () => {
       try {
@@ -34,7 +26,7 @@ function CameraCapture({ onCapture }) {
         streamRef.current = stream;
       } catch (err) {
         setError('Could not access camera: ' + err.message);
-        setCameraActive(false);
+        if (onCancel) onCancel();
       }
     })();
     return () => {
@@ -44,7 +36,7 @@ function CameraCapture({ onCapture }) {
         streamRef.current = null;
       }
     };
-  }, [cameraActive]);
+  }, [onCancel]);
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return;
@@ -56,7 +48,6 @@ function CameraCapture({ onCapture }) {
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     canvas.toBlob(blob => {
       if (blob) {
-        setCapturedImage(URL.createObjectURL(blob));
         const file = new File([blob], 'captured.jpg', { type: 'image/jpeg' });
         if (onCapture) onCapture(file);
       }
@@ -65,27 +56,15 @@ function CameraCapture({ onCapture }) {
   };
 
   return (
-    <div className="camera-capture">
-      {!cameraActive && !capturedImage && (
-        <button onClick={startCamera} className="camera-button">Take a Picture</button>
-      )}
-      {cameraActive && (
-        <div className="camera-view">
-          <video ref={videoRef} autoPlay playsInline />
-          <div className="camera-controls">
-            <button onClick={capturePhoto}>Capture</button>
-            <button onClick={stopCamera} className="cancel">Cancel</button>
-          </div>
-          <canvas ref={canvasRef} style={{ display: 'none' }} />
-        </div>
-      )}
-      {capturedImage && !cameraActive && (
-        <div className="captured-image-view">
-          <p>Using captured image. To retake, re-open the camera.</p>
-        </div>
-      )}
+    <div className="camera-view">
+      <video ref={videoRef} autoPlay playsInline style={{ width: '100%', maxWidth: '500px', borderRadius: '8px' }} />
+      <div className="camera-actions">
+        <button onClick={capturePhoto}>Capture</button>
+        <button onClick={stopCamera} className="secondary">Cancel</button>
+      </div>
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
       {error && (
-        <div className="error-message">{error}</div>
+        <div className="error-message" style={{ marginTop: '10px' }}>{error}</div>
       )}
     </div>
   );
