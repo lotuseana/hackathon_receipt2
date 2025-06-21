@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabase } from './supabaseClient';
 import CameraCapture from './CameraCapture';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
 import PieChart from './PieChart';
 import './App.css';
 
@@ -13,7 +11,6 @@ const anthropic = new Anthropic({
 });
 
 function App() {
-  const [session, setSession] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrText, setOcrText] = useState(null);
@@ -23,36 +20,8 @@ function App() {
   const [error, setError] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
 
-  const setupNewUser = async (user) => {
-    const { data } = await supabase.from('categories').select('id').limit(1);
-    if (data && data.length === 0) {
-      const defaultCategories = [
-        { name: 'Food and Drink', user_id: user.id },
-        { name: 'Clothing', user_id: user.id },
-        { name: 'Utilities', user_id: user.id },
-        { name: 'Entertainment', user_id: user.id },
-        { name: 'Other', user_id: user.id },
-      ];
-      await supabase.from('categories').insert(defaultCategories);
-    }
-  };
-
   useEffect(() => {
-    setIsLoading(true);
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setIsLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (_event === 'SIGNED_IN' && session) {
-        await setupNewUser(session.user);
-      }
-      setSession(session);
-      setIsLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -65,12 +34,6 @@ function App() {
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
 
-  useEffect(() => {
-    if (session) {
-      fetchCategories();
-    }
-  }, [session]);
-
   const fetchCategories = async () => {
     const { data, error } = await supabase.from('categories').select('*').order('name');
     if (error) {
@@ -79,6 +42,7 @@ function App() {
     } else {
       setCategories(data);
     }
+    setIsLoading(false);
   };
 
   const handleReset = async () => {
@@ -225,19 +189,10 @@ function App() {
     return <div className="loading-container">Loading...</div>;
   }
 
-  if (!session) {
-    return (
-      <div className="auth-container">
-        <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} providers={['google', 'github']} />
-      </div>
-    )
-  }
-
   return (
     <div className="App">
        <div className="top-bar">
         <h1>Receipt Budget Assistant</h1>
-        <button onClick={() => supabase.auth.signOut()} className="sign-out-button">Sign Out</button>
       </div>
       <div className="content-row">
         <div className="main-card">

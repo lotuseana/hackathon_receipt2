@@ -582,9 +582,3 @@ h1 {
     height: 200px;
   }
 }
-
-.auth-container {
-  width: 100%;
-  max-width: 420px;
-  margin: 50px auto;
-}
