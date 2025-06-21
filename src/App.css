@@ -62,7 +62,7 @@ body {
   display: none;
 }
 
-.file-label {
+.file-label, .camera-button {
   display: inline-block;
   padding: 12px 20px;
   background-color: #1877f2;
@@ -72,9 +72,12 @@ body {
   font-weight: bold;
   text-align: center;
   transition: background-color 0.2s;
+  border: none;
+  font-size: 16px;
+  text-decoration: none;
 }
 
-.file-label:hover {
+.file-label:hover, .camera-button:hover {
   background-color: #166fe5;
 }
 
@@ -84,6 +87,25 @@ body {
 
 .selection-area p {
   margin-bottom: 10px;
+}
+
+.image-preview {
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .selection-area button {
@@ -105,6 +127,14 @@ body {
 .selection-area button:disabled {
   background-color: #9cb4d8;
   cursor: not-allowed;
+}
+
+.cancel-button {
+  background-color: #d9534f !important;
+}
+
+.cancel-button:hover {
+  background-color: #c9302c !important;
 }
 
 .error-message {
@@ -152,23 +182,6 @@ body {
 
 .camera-capture {
   margin-bottom: 20px;
-}
-
-.camera-button {
-  width: 100%;
-  padding: 12px 20px;
-  background-color: #5c6ac4;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 16px;
-  transition: background-color 0.2s;
-}
-
-.camera-button:hover {
-  background-color: #4a55a0;
 }
 
 .camera-view video {

@@ -11,11 +11,23 @@ const anthropic = new Anthropic({
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrText, setOcrText] = useState(null);
   const [structuredData, setStructuredData] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Handle image preview
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
 
   const fetchCategories = async () => {
     const { data, error } = await supabase.from('categories').select('*').order('name');
@@ -50,6 +62,13 @@ function App() {
 
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
+    setOcrText(null);
+    setStructuredData(null);
+    setError(null);
+  };
+
+  const handleCancel = () => {
+    setSelectedFile(null);
     setOcrText(null);
     setStructuredData(null);
     setError(null);
@@ -163,10 +182,18 @@ function App() {
         />
         {selectedFile && (
           <div className="selection-area">
+            <div className="image-preview">
+              <img src={previewUrl} alt="Selected preview" />
+            </div>
             <p>Selected: {selectedFile.name}</p>
-            <button onClick={handleRecognize} disabled={isLoading}>
-              {isLoading ? 'Processing...' : 'Extract & Analyze'}
-            </button>
+            <div className="action-buttons">
+              <button onClick={handleRecognize} disabled={isLoading}>
+                {isLoading ? 'Processing...' : 'Extract & Analyze'}
+              </button>
+              <button onClick={handleCancel} className="cancel-button">
+                Cancel
+              </button>
+            </div>
           </div>
         )}
         {error && (
