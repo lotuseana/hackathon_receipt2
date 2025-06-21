@@ -9,44 +9,67 @@ const anthropic = new Anthropic({
 
 function App() {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [ocrText, setOcrText] = useState('');
+  const [ocrText, setOcrText] = useState(null);
   const [structuredData, setStructuredData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
-    setOcrText('');
+    setOcrText(null);
     setStructuredData(null);
+    setError(null);
   };
 
   const handleRecognize = async () => {
     if (!selectedFile) return;
 
     setIsLoading(true);
-    setOcrText('');
+    setOcrText(null);
     setStructuredData(null);
+    setError(null);
     
-    const { createWorker } = await import('tesseract.js');
-    const worker = await createWorker('eng');
-    const { data: { text } } = await worker.recognize(selectedFile);
-    await worker.terminate();
+    try {
+      const { createWorker } = await import('tesseract.js');
+      const worker = await createWorker('eng');
+      const { data: { text } } = await worker.recognize(selectedFile);
+      await worker.terminate();
 
-    setOcrText(text);
+      setOcrText(text);
 
-    const msg = await anthropic.messages.create({
-      model: "claude-3-haiku-20240307",
-      max_tokens: 1024,
-      messages: [{
-        role: "user",
-        content: `Extract the store name, date, items with prices, and the total from the following receipt text. Return the response as a valid JSON object. Do not include any text outside of the JSON object.\n\nReceipt Text:\n${text}`
-      }],
-    });
-    
-    // The response from Anthropic is a string that should be valid JSON.
-    // We will parse it to get the structured data object.
-    const jsonData = JSON.parse(msg.content[0].text);
-    setStructuredData(jsonData);
-    setIsLoading(false);
+      const msg = await anthropic.messages.create({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 1024,
+        messages: [{
+          role: "user",
+          content: `From the following receipt text, extract the store name, date, a list of items with their prices, and the final total. Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting like \`\`\`json. If you cannot find a value for a field, use null or an empty array for items. The JSON object must have these keys: "storeName", "date", "items", "total".\n\nReceipt Text:\n${text}`
+        }],
+      });
+      
+      let responseText = msg.content[0].text;
+      let jsonData;
+
+      try {
+        jsonData = JSON.parse(responseText);
+      } catch (parseError) {
+        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            jsonData = JSON.parse(jsonMatch[0]);
+          } catch (nestedParseError) {
+             throw new Error("Could not parse the structured data from the AI's response.");
+          }
+        } else {
+          throw new Error("The AI's response was not in the expected format.");
+        }
+      }
+      setStructuredData(jsonData);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -54,7 +77,7 @@ function App() {
       <h1>Receipt Budget Assistant</h1>
       <input 
         type="file" 
-        accept="image/*" 
+        accept="image/png, image/jpeg" 
         onChange={handleFileSelect}
       />
       {selectedFile && (
@@ -63,6 +86,11 @@ function App() {
           <button onClick={handleRecognize} disabled={isLoading}>
             {isLoading ? 'Processing...' : 'Extract & Analyze'}
           </button>
+        </div>
+      )}
+      {error && (
+        <div style={{ color: 'red', marginTop: '10px' }}>
+          <p>Error: {error}</p>
         </div>
       )}
       {structuredData && (
