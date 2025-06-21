@@ -1,0 +1,68 @@
+import React, { useState } from 'react';
+
+function ManualEntry({ categories, onAddEntry }) {
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [amount, setAmount] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!selectedCategory || !amount) {
+      setError('Please select a category and enter an amount.');
+      return;
+    }
+    setError('');
+    onAddEntry({
+      category: selectedCategory,
+      total: parseFloat(amount),
+    });
+    setSelectedCategory('');
+    setAmount('');
+  };
+
+  return (
+    <div className="manual-entry-card">
+      <div className="or-divider">
+        <span>OR</span>
+      </div>
+      <h3>Add a Manual Entry</h3>
+      <form onSubmit={handleSubmit} className="manual-entry-form">
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="category-select">Category</label>
+            <select
+              id="category-select"
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select a category...</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="amount-input">Amount</label>
+            <input
+              id="amount-input"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              required
+              step="0.01"
+              min="0"
+            />
+          </div>
+        </div>
+        <button type="submit" className="add-entry-button">Add Spending</button>
+        {error && <p className="error-message-small">{error}</p>}
+      </form>
+    </div>
+  );
+}
+
+export default ManualEntry; 

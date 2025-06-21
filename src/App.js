@@ -3,6 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { supabase } from './supabaseClient';
 import CameraCapture from './CameraCapture';
 import PieChart from './PieChart';
+import ManualEntry from './ManualEntry';
 import './App.css';
 
 const anthropic = new Anthropic({
@@ -21,6 +22,7 @@ function App() {
   const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -96,6 +98,48 @@ function App() {
     setOcrText(null);
     setStructuredData(null);
     setError(null);
+  };
+
+  const handleAddManualEntry = async ({ category: categoryName, total: amount }) => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      if (!categoryName || !amount) {
+        throw new Error("Category and amount are required.");
+      }
+
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error(`Invalid amount: ${amount}`);
+      }
+
+      const { data: categoryData, error: fetchError } = await supabase
+        .from('categories')
+        .select('id, total_spent')
+        .ilike('name', categoryName)
+        .single();
+
+      if (fetchError || !categoryData) {
+        throw new Error(`Could not find the category "${categoryName}" in the database.`);
+      }
+
+      const newTotal = categoryData.total_spent + amount;
+
+      const { error: updateError } = await supabase
+        .from('categories')
+        .update({ total_spent: newTotal })
+        .eq('id', categoryData.id);
+
+      if (updateError) {
+        throw new Error(`Could not update category total: ${updateError.message}`);
+      }
+      
+      await fetchCategories();
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleRecognize = async () => {
@@ -216,6 +260,8 @@ function App() {
             />
           </div>
           
+          <ManualEntry categories={categories} onAddEntry={handleAddManualEntry} />
+
           {cameraActive && (
             <CameraCapture
               onCapture={handleCapture}
@@ -237,10 +283,10 @@ function App() {
                   Cancel
                 </button>
               </div>
-              {isExtracting && (
+              {(isExtracting || isSubmitting) && (
                 <div className="extraction-loading">
                   <div className="loading-spinner"></div>
-                  <p>Extracting text and analyzing receipt...</p>
+                  <p>{isExtracting ? 'Extracting text and analyzing receipt...' : 'Adding manual entry...'}</p>
                 </div>
               )}
             </div>
