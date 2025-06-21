@@ -161,6 +161,8 @@ function App() {
     }
   };
 
+  const grandTotal = categories.reduce((total, category) => total + (category.total_spent || 0), 0);
+
   return (
     <div className="App">
       <div className="main-card">
@@ -231,6 +233,11 @@ function App() {
             </li>
           ))}
         </ul>
+        <hr className="total-divider" />
+        <div className="grand-total">
+          <span>Total Spending</span>
+          <strong>${grandTotal.toFixed(2)}</strong>
+        </div>
       </div>
     </div>
   );

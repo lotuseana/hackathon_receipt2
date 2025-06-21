@@ -247,3 +247,18 @@ body {
   background-color: #e8a09d;
   cursor: not-allowed;
 }
+
+.total-divider {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 10px 0;
+}
+
+.grand-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  font-size: 18px;
+  color: #1c1e21;
+  padding-top: 10px;
+}
