@@ -42,7 +42,7 @@ function App() {
         max_tokens: 1024,
         messages: [{
           role: "user",
-          content: `From the following receipt text, extract the store name, date, a list of items with their prices, and the final total. Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting like \`\`\`json. If you cannot find a value for a field, use null or an empty array for items. The JSON object must have these keys: "storeName", "date", "items", "total".\n\nReceipt Text:\n${text}`
+          content: `From the following receipt text, extract the store name and the final total. Classify the store into one of the following categories: "Clothing", "Food and Drink", "Utilities", "Entertainment", or "Other". Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting. If you cannot find a value for a field, use null. The JSON object must have these keys: "storeName", "total", "category".\n\nReceipt Text:\n${text}`
         }],
       });
       
