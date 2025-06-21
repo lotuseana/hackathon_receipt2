@@ -205,10 +205,21 @@ function App() {
         )}
         {structuredData && (
           <div className="data-display">
-            <h3>Structured Data:</h3>
-            <pre>
-              {JSON.stringify(structuredData, null, 2)}
-            </pre>
+            <h3>Receipt Information:</h3>
+            <div className="receipt-info">
+              <div className="info-row">
+                <span className="info-label">Store Name:</span>
+                <span className="info-value">{structuredData.storeName || 'Not found'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Total to Add:</span>
+                <span className="info-value">${structuredData.total || 'Not found'}</span>
+              </div>
+              <div className="info-row">
+                <span className="info-label">Category:</span>
+                <span className="info-value">{structuredData.category || 'Not found'}</span>
+              </div>
+            </div>
           </div>
         )}
         {ocrText && !structuredData && !error && (
