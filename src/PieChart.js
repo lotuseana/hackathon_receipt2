@@ -81,11 +81,11 @@ function PieChart({ categories }) {
       <h3>Spending Breakdown</h3>
       <div className="chart-wrapper">
         <div className="chart-container">
-          <Doughnut data={data} options={options} />
           <div className="center-total">
             <div className="total-amount">${totalSpent.toFixed(2)}</div>
             <div className="total-label">Total Spent</div>
           </div>
+          <Doughnut data={data} options={options} />
         </div>
       </div>
     </div>
