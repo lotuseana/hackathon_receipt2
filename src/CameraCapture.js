@@ -8,14 +8,12 @@ function CameraCapture({ onCapture }) {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
 
-  // Start camera and set cameraActive
   const startCamera = async () => {
     setError(null);
     setCapturedImage(null);
     setCameraActive(true);
   };
 
-  // Stop camera and cleanup
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -24,7 +22,6 @@ function CameraCapture({ onCapture }) {
     setCameraActive(false);
   };
 
-  // Handle stream assignment and cleanup
   useEffect(() => {
     if (!cameraActive) return;
     let isMounted = true;
@@ -68,27 +65,27 @@ function CameraCapture({ onCapture }) {
   };
 
   return (
-    <div style={{ marginBottom: '20px' }}>
-      {!cameraActive && (
-        <button onClick={startCamera} style={{ marginBottom: '10px' }}>Take a Picture</button>
+    <div className="camera-capture">
+      {!cameraActive && !capturedImage && (
+        <button onClick={startCamera} className="camera-button">Take a Picture</button>
       )}
       {cameraActive && (
-        <div style={{ marginBottom: '10px' }}>
-          <video ref={videoRef} autoPlay playsInline style={{ width: '100%', maxWidth: '500px', borderRadius: '8px' }} />
-          <br />
-          <button onClick={capturePhoto} style={{ marginRight: '10px' }}>Capture</button>
-          <button onClick={stopCamera}>Cancel</button>
+        <div className="camera-view">
+          <video ref={videoRef} autoPlay playsInline />
+          <div className="camera-controls">
+            <button onClick={capturePhoto}>Capture</button>
+            <button onClick={stopCamera} className="cancel">Cancel</button>
+          </div>
           <canvas ref={canvasRef} style={{ display: 'none' }} />
         </div>
       )}
-      {capturedImage && (
-        <div style={{ marginBottom: '10px' }}>
-          <p>Captured Image:</p>
-          <img src={capturedImage} alt="Captured" style={{ width: '100%', maxWidth: '500px', borderRadius: '8px' }} />
+      {capturedImage && !cameraActive && (
+        <div className="captured-image-view">
+          <p>Using captured image. To retake, re-open the camera.</p>
         </div>
       )}
       {error && (
-        <div style={{ color: 'red', marginTop: '10px' }}>{error}</div>
+        <div className="error-message">{error}</div>
       )}
     </div>
   );

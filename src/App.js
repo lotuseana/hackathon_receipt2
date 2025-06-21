@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
-import './App.css';
+import { supabase } from './supabaseClient';
 import CameraCapture from './CameraCapture';
+import './App.css';
 
 const anthropic = new Anthropic({
   apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
@@ -12,8 +13,23 @@ function App() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [ocrText, setOcrText] = useState(null);
   const [structuredData, setStructuredData] = useState(null);
+  const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase.from('categories').select('*').order('name');
+    if (error) {
+      setError("Could not fetch categories from the database.");
+      console.error(error);
+    } else {
+      setCategories(data);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleFileSelect = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -65,6 +81,42 @@ function App() {
         }
       }
       setStructuredData(jsonData);
+
+      if (jsonData.category && jsonData.total) {
+        const amount = parseFloat(String(jsonData.total).replace(/[^0-9.-]+/g, ""));
+        
+        if (isNaN(amount)) {
+          throw new Error(`Invalid total amount received from AI: ${jsonData.total}`);
+        }
+
+        const categoryName = jsonData.category.replace(/^"|"$/g, '').trim();
+
+        const { data: categoryData, error: fetchError } = await supabase
+          .from('categories')
+          .select('id, total_spent')
+          .ilike('name', categoryName)
+          .single();
+
+        if (fetchError || !categoryData) {
+          throw new Error(`Could not find the category "${categoryName}" in the database.`);
+        }
+
+        const newTotal = categoryData.total_spent + amount;
+
+        const { error: updateError } = await supabase
+          .from('categories')
+          .update({ total_spent: newTotal })
+          .eq('id', categoryData.id);
+
+        if (updateError) {
+          throw new Error(`Could not update category total: ${updateError.message}`);
+        }
+        
+        await fetchCategories();
+      } else {
+        throw new Error("AI response did not include a 'category' and a 'total'.");
+      }
+
     } catch (err) {
       console.error(err);
       setError(err.message);
@@ -83,6 +135,7 @@ function App() {
           setStructuredData(null);
           setError(null);
         }} />
+        <span className="or-divider">OR</span>
         <label className="file-label" htmlFor="file-upload">Choose Image</label>
         <input
           id="file-upload"
@@ -92,7 +145,7 @@ function App() {
           onChange={handleFileSelect}
         />
         {selectedFile && (
-          <div>
+          <div className="selection-area">
             <p>Selected: {selectedFile.name}</p>
             <button onClick={handleRecognize} disabled={isLoading}>
               {isLoading ? 'Processing...' : 'Extract & Analyze'}
@@ -105,21 +158,32 @@ function App() {
           </div>
         )}
         {structuredData && (
-          <div>
+          <div className="data-display">
             <h3>Structured Data:</h3>
             <pre>
               {JSON.stringify(structuredData, null, 2)}
             </pre>
           </div>
         )}
-        {ocrText && !structuredData && (
-          <div>
+        {ocrText && !structuredData && !error && (
+          <div className="data-display">
             <h3>Extracted Text:</h3>
             <pre>
               {ocrText}
             </pre>
           </div>
         )}
+      </div>
+      <div className="categories-display-card">
+        <h2>Category Spending</h2>
+        <ul>
+          {categories.map(cat => (
+            <li key={cat.id}>
+              <span>{cat.name}</span>
+              <strong>${(cat.total_spent || 0).toFixed(2)}</strong>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
