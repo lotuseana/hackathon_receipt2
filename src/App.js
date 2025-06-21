@@ -27,6 +27,23 @@ function App() {
     }
   };
 
+  const handleReset = async () => {
+    setIsLoading(true);
+    setError(null);
+    const { error } = await supabase
+      .from('categories')
+      .update({ total_spent: 0 })
+      .gt('id', 0);
+
+    if (error) {
+      setError("Could not reset category totals.");
+      console.error(error);
+    } else {
+      await fetchCategories();
+    }
+    setIsLoading(false);
+  };
+
   useEffect(() => {
     fetchCategories();
   }, []);
@@ -175,7 +192,10 @@ function App() {
         )}
       </div>
       <div className="categories-display-card">
-        <h2>Category Spending</h2>
+        <div className="category-header">
+          <h2>Category Spending</h2>
+          <button onClick={handleReset} className="reset-button" disabled={isLoading}>Reset All</button>
+        </div>
         <ul>
           {categories.map(cat => (
             <li key={cat.id}>
