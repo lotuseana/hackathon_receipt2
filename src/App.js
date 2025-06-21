@@ -17,6 +17,8 @@ function App() {
   const [structuredData, setStructuredData] = useState(null);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isExtracting, setIsExtracting] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
   const [error, setError] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
 
@@ -46,7 +48,7 @@ function App() {
   };
 
   const handleReset = async () => {
-    setIsLoading(true);
+    setIsResetting(true);
     setError(null);
     const { error } = await supabase
       .from('categories')
@@ -59,7 +61,7 @@ function App() {
     } else {
       await fetchCategories();
     }
-    setIsLoading(false);
+    setIsResetting(false);
   };
 
   const handleFileSelect = (event) => {
@@ -99,7 +101,7 @@ function App() {
   const handleRecognize = async () => {
     if (!selectedFile) return;
 
-    setIsLoading(true);
+    setIsExtracting(true);
     setOcrText(null);
     setStructuredData(null);
     setError(null);
@@ -179,7 +181,7 @@ function App() {
       console.error(err);
       setError(err.message);
     } finally {
-      setIsLoading(false);
+      setIsExtracting(false);
     }
   };
 
@@ -228,13 +230,19 @@ function App() {
               </div>
               <p>Selected: {selectedFile.name}</p>
               <div className="action-buttons">
-                <button onClick={handleRecognize} disabled={isLoading}>
-                  {isLoading ? 'Processing...' : 'Extract & Analyze'}
+                <button onClick={handleRecognize} disabled={isExtracting}>
+                  {isExtracting ? 'Processing...' : 'Extract & Analyze'}
                 </button>
                 <button onClick={handleCancel} className="cancel-button">
                   Cancel
                 </button>
               </div>
+              {isExtracting && (
+                <div className="extraction-loading">
+                  <div className="loading-spinner"></div>
+                  <p>Extracting text and analyzing receipt...</p>
+                </div>
+              )}
             </div>
           )}
           {error && (
@@ -273,7 +281,9 @@ function App() {
         <div className="spending-breakdown-card">
           <div className="category-header">
             <h2>Spending Breakdown</h2>
-            <button onClick={handleReset} className="reset-button" disabled={isLoading}>Reset All</button>
+            <button onClick={handleReset} className="reset-button" disabled={isResetting}>
+              {isResetting ? 'Resetting...' : 'Reset All'}
+            </button>
           </div>
           <div className="chart-section">
             <PieChart categories={categories} />
