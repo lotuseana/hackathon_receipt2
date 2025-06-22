@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function ManualEntry({ categories, onAddEntry }) {
+function ManualEntry({ categories, onAddEntry, isSubmitting = false }) {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
@@ -35,6 +35,7 @@ function ManualEntry({ categories, onAddEntry }) {
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               required
+              disabled={isSubmitting}
             >
               <option value="" disabled>Select a category...</option>
               {categories.map((cat) => (
@@ -55,10 +56,17 @@ function ManualEntry({ categories, onAddEntry }) {
               required
               step="0.01"
               min="0"
+              disabled={isSubmitting}
             />
           </div>
         </div>
-        <button type="submit" className="add-entry-button">Add Spending</button>
+        <button 
+          type="submit" 
+          className="add-entry-button"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Adding...' : 'Add Spending'}
+        </button>
         {error && <p className="error-message-small">{error}</p>}
       </form>
     </div>
