@@ -229,8 +229,13 @@ function SpendingDashboard({
                         {spendingItems.length > 0 ? (
                           spendingItems.map(item => (
                             <li key={item.id}>
-                              <span>{item.item_name}</span>
-                              <span>${item.amount.toFixed(2)}</span>
+                              <span className="item-name">{item.item_name}</span>
+                              <div className="item-details">
+                                <span className="item-date">
+                                  {new Date(item.created_at).toLocaleDateString()}
+                                </span>
+                                <span className="item-amount">${item.amount.toFixed(2)}</span>
+                              </div>
                             </li>
                           ))
                         ) : (

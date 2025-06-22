@@ -55,6 +55,12 @@ CREATE TABLE IF NOT EXISTS budgets (
 -- Enable Row Level Security on budgets table
 ALTER TABLE budgets ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Users can view their own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can insert their own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can update their own budgets" ON budgets;
+DROP POLICY IF EXISTS "Users can delete their own budgets" ON budgets;
+
 -- Create policies for budgets table
 CREATE POLICY "Users can view their own budgets" ON budgets
   FOR SELECT USING (auth.uid() = user_id);
@@ -83,6 +89,7 @@ BEGIN
     (NEW.id, 'Clothing', 0.00),
     (NEW.id, 'Utilities', 0.00),
     (NEW.id, 'Entertainment', 0.00),
+    (NEW.id, 'Tax', 0.00),
     (NEW.id, 'Other', 0.00);
   RETURN NEW;
 END;
@@ -102,6 +109,7 @@ BEGIN
       WHEN c.name = 'Clothing' THEN 200.00
       WHEN c.name = 'Utilities' THEN 300.00
       WHEN c.name = 'Entertainment' THEN 150.00
+      WHEN c.name = 'Tax' THEN 100.00
       ELSE 100.00
     END,
     'monthly',

@@ -95,6 +95,7 @@ The "items" key must hold an array of objects, where each object has "descriptio
 - The "description" should be a short, clean name for the item.
 - The "price" must be a number (e.g., 12.99).
 - The "category" must be one of the provided category names.
+- Explicitly look for a "Tax" or "Sales Tax" line item and classify it under the "Tax" category.
 
 If a value cannot be found, use null. For item categorization, use "Other" if no other category fits.
 

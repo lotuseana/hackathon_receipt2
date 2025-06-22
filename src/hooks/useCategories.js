@@ -123,18 +123,32 @@ export const useCategories = (user) => {
     setIsLoading(true);
     setError(null);
     
-    const { error } = await supabase
-      .from('categories')
-      .update({ total_spent: 0 })
-      .eq('user_id', user.id);
+    try {
+      const { error: deleteError } = await supabase
+        .from('spending_items')
+        .delete()
+        .eq('user_id', user.id);
 
-    if (error) {
-      setError("Could not reset category totals.");
-      console.error(error);
-    } else {
+      if (deleteError) {
+        throw new Error(`Could not clear spending items: ${deleteError.message}`);
+      }
+
+      const { error } = await supabase
+        .from('categories')
+        .update({ total_spent: 0 })
+        .eq('user_id', user.id);
+
+      if (error) {
+        throw new Error(`Could not reset category totals: ${error.message}`);
+      }
+      
       await fetchCategories();
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   useEffect(() => {
