@@ -383,6 +383,60 @@ h1 {
   line-height: 1.5;
 }
 
+.items-table {
+  margin-top: 20px;
+}
+
+.items-table-title {
+  font-size: 1.1rem;
+  color: #333446;
+  margin-bottom: 12px;
+  border-top: 1px solid #B8CFCE;
+  padding-top: 20px;
+}
+
+.items-table-header, .items-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr;
+  gap: 16px;
+  padding: 12px;
+  border-bottom: 1px solid #B8CFCE;
+  align-items: center;
+}
+
+.items-table-header {
+  font-weight: bold;
+  color: #333446;
+  background-color: #f8f9fa;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+
+.items-table-row {
+  background-color: #fff;
+}
+
+.items-table-row:last-child {
+  border-bottom: none;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.item-desc {
+  font-weight: 500;
+}
+
+.item-cat {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.item-price {
+  text-align: right;
+  font-weight: bold;
+  color: #333446;
+}
+
 .camera-capture-placeholder {
   background: #EAEFEF;
   text-align: center;

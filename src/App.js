@@ -31,7 +31,7 @@ function App() {
     handleCancel,
     processReceipt,
     setError: setReceiptError
-  } = useReceiptProcessing(updateCategoryTotal);
+  } = useReceiptProcessing(updateCategoryTotal, categories);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [spendingTips, setSpendingTips] = useState([]);

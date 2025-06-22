@@ -1,12 +1,23 @@
 import { useState, useEffect } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
+import { GoogleCloudVisionService } from '../services/googleCloudVision';
 
 const anthropic = new Anthropic({
   apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
   dangerouslyAllowBrowser: true,
 });
 
-export const useReceiptProcessing = (updateCategoryTotal) => {
+// Check if API key is available
+const googleCloudVisionApiKey = process.env.REACT_APP_GOOGLE_CLOUD_VISION_API_KEY;
+// console.log('Google Cloud Vision API Key available:', !!googleCloudVisionApiKey);
+// if (googleCloudVisionApiKey) {
+//   console.log('API Key (first 10 chars):', googleCloudVisionApiKey.substring(0, 10) + '...');
+// }
+
+// Initialize Google Cloud Vision service
+const googleCloudVision = new GoogleCloudVisionService(googleCloudVisionApiKey);
+
+export const useReceiptProcessing = (updateCategoryTotal, categories) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrText, setOcrText] = useState(null);
@@ -58,21 +69,40 @@ export const useReceiptProcessing = (updateCategoryTotal) => {
     setError(null);
     
     try {
-      // Step 1: OCR Processing
-      const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('eng');
-      const { data: { text } } = await worker.recognize(selectedFile);
-      await worker.terminate();
-
+      // Step 1: OCR Processing using Google Cloud Vision API
+      const text = await googleCloudVision.extractTextFromImage(selectedFile);
       setOcrText(text);
 
-      // Step 2: AI Analysis
+      // Log the extracted text to the console
+      console.log("--- Extracted OCR Text ---");
+      console.log(text);
+      console.log("--------------------------");
+      
+      const categoryNames = categories.map(c => c.name).join('", "');
+
+      // Step 2: AI Analysis for itemization
       const msg = await anthropic.messages.create({
         model: "claude-3-haiku-20240307",
-        max_tokens: 1024,
+        max_tokens: 2048, // Increased tokens for longer receipts
         messages: [{
           role: "user",
-          content: `From the following receipt text, extract the store name and the final total. Classify the store into one of the following categories: "Clothing", "Food and Drink", "Utilities", "Entertainment", or "Other". Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting. If you cannot find a value for a field, use null. The JSON object must have these keys: "storeName", "total", "category".\n\nReceipt Text:\n${text}`
+          content: `From the following receipt text, extract the store name, the final total, and a list of all items. For each item, provide its description, price, and classify it into one of the available categories.
+
+Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting.
+
+The JSON object must have these keys: "storeName", "total", "items".
+The "items" key must hold an array of objects, where each object has "description", "price", and "category" keys.
+- The "description" should be a short, clean name for the item.
+- The "price" must be a number (e.g., 12.99).
+- The "category" must be one of the provided category names.
+
+If a value cannot be found, use null. For item categorization, use "Other" if no other category fits.
+
+Available Categories:
+"${categoryNames}"
+
+Receipt Text:
+${text}`
         }],
       });
       
@@ -95,18 +125,23 @@ export const useReceiptProcessing = (updateCategoryTotal) => {
       }
       setStructuredData(jsonData);
 
-      // Step 3: Update Database
-      if (jsonData.category && jsonData.total) {
-        const amount = parseFloat(String(jsonData.total).replace(/[^0-9.-]+/g, ""));
-        
-        if (isNaN(amount)) {
-          throw new Error(`Invalid total amount received from AI: ${jsonData.total}`);
-        }
+      // Step 3: Update Database with itemized spending
+      if (jsonData.items && Array.isArray(jsonData.items)) {
+        for (const item of jsonData.items) {
+          if (item.category && item.price) {
+            const amount = parseFloat(String(item.price).replace(/[^0-9.-]+/g, ""));
+            
+            if (isNaN(amount)) {
+              console.warn(`Invalid amount for item "${item.description}": ${item.price}`);
+              continue; // Skip invalid items
+            }
 
-        const categoryName = jsonData.category.replace(/^"|"$/g, '').trim();
-        await updateCategoryTotal(categoryName, amount);
+            const categoryName = item.category.replace(/^"|"$/g, '').trim();
+            await updateCategoryTotal(categoryName, amount);
+          }
+        }
       } else {
-        throw new Error("AI response did not include a 'category' and a 'total'.");
+        throw new Error("AI response did not include a valid 'items' array.");
       }
 
     } catch (err) {

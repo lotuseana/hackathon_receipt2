@@ -97,14 +97,28 @@ function ReceiptUpload({
                   <span className="info-value">{structuredData.storeName || 'Not found'}</span>
                 </div>
                 <div className="info-row">
-                  <span className="info-label">Total to Add:</span>
-                  <span className="info-value">${structuredData.total || 'Not found'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Category:</span>
-                  <span className="info-value">{structuredData.category || 'Not found'}</span>
+                  <span className="info-label">Receipt Total:</span>
+                  <span className="info-value">${structuredData.total?.toFixed(2) || 'Not found'}</span>
                 </div>
               </div>
+              
+              {structuredData.items && structuredData.items.length > 0 && (
+                <div className="items-table">
+                  <h4 className="items-table-title">Categorized Items</h4>
+                  <div className="items-table-header">
+                    <span className="item-desc">Description</span>
+                    <span className="item-cat">Category</span>
+                    <span className="item-price">Price</span>
+                  </div>
+                  {structuredData.items.map((item, index) => (
+                    <div key={index} className="items-table-row">
+                      <span className="item-desc">{item.description || 'N/A'}</span>
+                      <span className="item-cat">{item.category || 'Other'}</span>
+                      <span className="item-price">${item.price?.toFixed(2) || '0.00'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
