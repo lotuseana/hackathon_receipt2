@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import PieChart from './charts/PieChart';
 
 const categoryColors = [
-  '#7F8CAA', // Muted Blue-Gray
-  '#B8CFCE', // Light Teal-Gray
-  '#A79AC3', // Muted Purple
-  '#E59882', // Muted Salmon
-  '#7EBC9F', // Muted Green
-  '#F0C674', // Muted Gold
-  '#81A1C1', // Muted Cornflower Blue
-  '#B48EAD'  // Muted Mauve
+  '#F9E79F', // Pastel Yellow
+  '#B2F7EF', // Pastel Aqua
+  '#A3E4D7', // Pastel Mint
+  '#AED6F1', // Pastel Blue
+  '#FAD7A0', // Pastel Peach
+  '#F6C1C7', // Pastel Pink
+  '#D4EFDF', // Pastel Green
+  '#F7DC6F'  // Budgie Yellow
 ];
 
 function SpendingDashboard({ 
@@ -28,8 +28,26 @@ function SpendingDashboard({
   const [expandedCategoryId, setExpandedCategoryId] = useState(null);
   const [spendingItems, setSpendingItems] = useState([]);
   const [isItemsLoading, setIsItemsLoading] = useState(false);
+  const [skipResetAnimation, setSkipResetAnimation] = useState(false);
 
   const grandTotal = categories.reduce((total, category) => total + (category.total_spent || 0), 0);
+
+  useEffect(() => {
+    function handleBlur() {
+      if (isResetting) {
+        setSkipResetAnimation(true);
+      }
+    }
+    function handleFocus() {
+      setSkipResetAnimation(false);
+    }
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+    return () => {
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isResetting]);
 
   const handleToggleCategory = async (categoryId) => {
     if (expandedCategoryId === categoryId) {
@@ -100,29 +118,6 @@ function SpendingDashboard({
     );
   };
 
-  const getProgressBarColor = (alertLevel) => {
-    switch (alertLevel) {
-      case 'critical':
-        return '#e74c3c';
-      case 'warning':
-        return '#f39c12';
-      case 'info':
-        return '#3498db';
-      default:
-        return '#27ae60';
-    }
-  };
-
-  const getProgressBarWidth = (progress) => {
-    return Math.min(progress, 100);
-  };
-
-  // Calculate spending progress for each category relative to total spending
-  const getCategorySpendingProgress = (categoryAmount) => {
-    if (grandTotal === 0) return 0;
-    return (categoryAmount / grandTotal) * 100;
-  };
-
   // Calculate budget progress for each category
   const getBudgetProgress = (categoryId) => {
     const budget = getBudgetForCategory(categoryId);
@@ -140,7 +135,8 @@ function SpendingDashboard({
       <div className="dashboard-content">
         <div className="chart-section">
           <PieChart categories={categories} colors={categoryColors} />
-          <button onClick={onReset} className="reset-button" disabled={isResetting}>
+          <button onClick={onReset} className="reset-button" disabled={isResetting} 
+            style={skipResetAnimation ? { transition: 'none' } : {}}>
             {isResetting ? 'Resetting...' : 'Reset All'}
           </button>
         </div>
@@ -148,10 +144,10 @@ function SpendingDashboard({
         <div className="categories-list">
           <ul>
             {categories.map((cat, index) => {
-              const budget = getBudgetForCategory(cat.id);
               const progress = getProgressForCategory(cat.id);
+              const budget = getBudgetForCategory(cat.id);
               const categoryAmount = cat.total_spent || 0;
-              const budgetProgress = getBudgetProgress(cat.id);
+              const progressPercentage = progress ? Math.min(progress.progress_percentage, 100) : 0;
               
               return (
                 <li key={cat.id}>
@@ -219,20 +215,24 @@ function SpendingDashboard({
 
                   {/* Budget Progress Bar - Always visible, shows budget progress */}
                   <div className="category-spending-progress">
-                    <div className="progress-bar-container-category">
-                      <div 
-                        className="progress-bar-category"
-                        style={{
-                          width: `${budgetProgress}%`,
-                          backgroundColor: categoryColors[index % categoryColors.length]
-                        }}
-                      >
-                        {budget && budgetProgress > 0 && (
-                          <span className="progress-text">
-                            {budgetProgress.toFixed(0)}%
-                          </span>
-                        )}
-                      </div>
+                    <div className="progress-bar-container-category" style={{position: 'relative'}}>
+                      {/* Colored fill only if progress > 0 */}
+                      {progressPercentage > 0 && (
+                        <div 
+                          className="progress-bar-category"
+                          style={{
+                            width: `${progressPercentage}%`,
+                            backgroundColor: progress && progress.is_over_budget ? '#e74c3c' : categoryColors[index % categoryColors.length],
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            height: '100%',
+                            zIndex: 1
+                          }}
+                        />
+                      )}
+                      {/* Percentage text removed */}
                     </div>
                   </div>
                   

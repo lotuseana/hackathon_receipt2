@@ -8,7 +8,6 @@ import Header from './components/Header';
 import ReceiptUpload from './components/ReceiptUpload';
 import SpendingDashboard from './components/SpendingDashboard';
 import BudgetManagement from './components/BudgetManagement';
-import BudgetAlerts from './components/BudgetAlerts';
 import SpendingTips from './components/tips/SpendingTips';
 import Auth from './components/auth/Auth';
 import SideMenu from './components/SideMenu';
@@ -21,7 +20,6 @@ function App() {
     isLoading: categoriesLoading, 
     error: categoriesError, 
     addSpendingItem,
-    fetchSpendingItems,
     updateCategoryAmount,
     resetAllCategories 
   } = useCategories(user);
@@ -64,6 +62,7 @@ function App() {
 
   const handleSignOut = async () => {
     try {
+      handleCancel();
       await signOut();
       setSpendingTips([]);
       setDismissedAlerts([]);
@@ -195,6 +194,19 @@ function App() {
     !dismissedAlerts.includes(index)
   );
 
+  // Helper: Get budget progress percentage for a category
+  const getBudgetFilledPercentage = (categoryId) => {
+    const progress = budgetProgress.find(progress =>
+      budgets.find(budget => budget.id === progress.budget_id)?.category_id === categoryId
+    );
+    return progress ? progress.progress_percentage : 0;
+  };
+
+  // Sort categories by budget filled percentage, descending
+  const sortedCategories = [...categories].sort((a, b) => {
+    return getBudgetFilledPercentage(b.id) - getBudgetFilledPercentage(a.id);
+  });
+
   if (isLoading) {
     return <div className="loading-container">Loading...</div>;
   }
@@ -209,12 +221,6 @@ function App() {
         user={user} 
         onSignOut={handleSignOut} 
         onManageBudgets={() => setBudgetMenuOpen(true)}
-      />
-      
-      {/* Budget Alerts */}
-      <BudgetAlerts 
-        budgetAlerts={activeBudgetAlerts}
-        onDismiss={handleDismissAlert}
       />
       
       <div className="content-row">
@@ -235,7 +241,7 @@ function App() {
         />
         
         <SpendingDashboard
-          categories={categories}
+          categories={sortedCategories}
           isResetting={categoriesLoading}
           onReset={handleResetCategories}
           onUpdateCategory={handleUpdateCategory}
@@ -256,7 +262,7 @@ function App() {
 
       <SideMenu isOpen={isBudgetMenuOpen} onClose={() => setBudgetMenuOpen(false)}>
         <BudgetManagement
-          categories={categories}
+          categories={sortedCategories}
           budgets={budgets}
           budgetProgress={budgetProgress}
           onUpdateBudget={updateBudget}

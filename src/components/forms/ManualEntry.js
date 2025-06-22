@@ -37,7 +37,7 @@ function ManualEntry({ categories, onAddEntry, isSubmitting = false }) {
               required
               disabled={isSubmitting}
             >
-              <option value="" disabled>Select a category...</option>
+              <option value="" disabled>---</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.name}>
                   {cat.name}
