@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth';
 import { useCategories } from './hooks/useCategories';
 import { useBudgets } from './hooks/useBudgets';
 import { useReceiptProcessing } from './hooks/useReceiptProcessing';
+import { useSpendingItems } from './hooks/useSpendingItems';
 import Header from './components/Header';
 import ReceiptUpload from './components/ReceiptUpload';
 import SpendingDashboard from './components/SpendingDashboard';
@@ -10,6 +11,7 @@ import BudgetManagement from './components/BudgetManagement';
 import BudgetAlerts from './components/BudgetAlerts';
 import SpendingTips from './components/tips/SpendingTips';
 import Auth from './components/auth/Auth';
+import SideMenu from './components/SideMenu';
 import './styles/App.css';
 
 function App() {
@@ -36,6 +38,8 @@ function App() {
     fetchBudgets
   } = useBudgets(user);
   
+  const { fetchSpendingItems: fetchItemsForCategory } = useSpendingItems(user);
+
   const {
     selectedFile,
     previewUrl,
@@ -56,12 +60,14 @@ function App() {
   const [tipsError, setTipsError] = useState(null);
   const [tipsGeneratedInitially, setTipsGeneratedInitially] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState([]);
+  const [isBudgetMenuOpen, setBudgetMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       setSpendingTips([]);
       setDismissedAlerts([]);
+      setBudgetMenuOpen(false);
     } catch (error) {
       console.error('Sign out error:', error);
     }
@@ -199,7 +205,11 @@ function App() {
 
   return (
     <div className="App">
-      <Header user={user} onSignOut={handleSignOut} />
+      <Header 
+        user={user} 
+        onSignOut={handleSignOut} 
+        onManageBudgets={() => setBudgetMenuOpen(true)}
+      />
       
       {/* Budget Alerts */}
       <BudgetAlerts 
@@ -231,20 +241,10 @@ function App() {
           onUpdateCategory={handleUpdateCategory}
           budgets={budgets}
           budgetProgress={budgetProgress}
-          fetchSpendingItems={fetchSpendingItems}
+          fetchSpendingItems={fetchItemsForCategory}
         />
         
         <div className="right-column">
-          <BudgetManagement
-            categories={categories}
-            budgets={budgets}
-            budgetProgress={budgetProgress}
-            onUpdateBudget={updateBudget}
-            onCreateBudget={createBudget}
-            onDeleteBudget={deleteBudget}
-            isLoading={budgetsLoading}
-          />
-          
           <SpendingTips 
             tips={spendingTips}
             onGenerate={handleGenerateTips}
@@ -253,6 +253,18 @@ function App() {
           />
         </div>
       </div>
+
+      <SideMenu isOpen={isBudgetMenuOpen} onClose={() => setBudgetMenuOpen(false)}>
+        <BudgetManagement
+          categories={categories}
+          budgets={budgets}
+          budgetProgress={budgetProgress}
+          onUpdateBudget={updateBudget}
+          onCreateBudget={createBudget}
+          onDeleteBudget={deleteBudget}
+          isLoading={budgetsLoading}
+        />
+      </SideMenu>
     </div>
   );
 }

@@ -138,19 +138,75 @@ function SpendingDashboard({
             
             return (
               <li key={cat.id}>
-                <div className="category-list-item">
-                  <span 
-                    className="category-color-circle"
-                    style={{ backgroundColor: categoryColors[index % categoryColors.length] }}
-                  ></span>
-                  <button onClick={() => handleToggleCategory(cat.id)} className="category-expand-button">
-                    {expandedCategoryId === cat.id ? '▼' : '▶'}
-                  </button>
-                  <span>{cat.name}</span>
+                <div className="category-details-container">
+                  <div className="category-list-item">
+                    <span 
+                      className="category-color-circle"
+                      style={{ backgroundColor: categoryColors[index % categoryColors.length] }}
+                    ></span>
+                    <button onClick={() => handleToggleCategory(cat.id)} className="category-expand-button">
+                      {expandedCategoryId === cat.id ? '▼' : '▶'}
+                    </button>
+                    <span>{cat.name}</span>
+                  </div>
+                  
+                  {editingId === cat.id ? (
+                    <div className="edit-amount-container">
+                      <div className="current-amount-display">
+                        <span className="current-label">Current: ${(cat.total_spent || 0).toFixed(2)}</span>
+                      </div>
+                      <div className="adjustment-input-group">
+                        <label className="adjustment-label">Adjustment (+/-):</label>
+                        <input
+                          type="number"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyDown={(e) => handleKeyPress(e, cat.id)}
+                          step="0.01"
+                          className="edit-amount-input"
+                          disabled={isUpdating}
+                          autoFocus
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div className="edit-buttons">
+                        <button
+                          onClick={() => handleSave(cat.id)}
+                          disabled={isUpdating}
+                          className="save-button"
+                        >
+                          {isUpdating ? 'Saving...' : 'Apply'}
+                        </button>
+                        <button
+                          onClick={handleCancel}
+                          disabled={isUpdating}
+                          className="cancel-edit-button"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="amount-display">
+                      <strong>${(cat.total_spent || 0).toFixed(2)}</strong>
+                      {progress && (
+                        <span className="progress-percentage-mini">
+                          ({progress.progress_percentage.toFixed(1)}% of budget)
+                        </span>
+                      )}
+                      <button
+                        onClick={() => handleEditClick(cat)}
+                        className="edit-button"
+                        title="Edit amount"
+                      >
+                        ✏️
+                      </button>
+                    </div>
+                  )}
                 </div>
-                
+
                 {/* Budget Progress Bar */}
-                {budget && progress && (
+                {budget && progress && !isItemsLoading && (
                   <div className="budget-progress-mini">
                     <div className="progress-bar-container-mini">
                       <div 
@@ -161,65 +217,9 @@ function SpendingDashboard({
                         }}
                       ></div>
                     </div>
-                    <div className="budget-info-mini">
-                      <span className="budget-amount-mini">
-                        ${budget.budget_amount.toFixed(2)} {budget.budget_type}
-                      </span>
-                      <span className="progress-percentage-mini">
-                        {progress.progress_percentage.toFixed(1)}%
-                      </span>
-                    </div>
                   </div>
                 )}
                 
-                {editingId === cat.id ? (
-                  <div className="edit-amount-container">
-                    <div className="current-amount-display">
-                      <span className="current-label">Current: ${(cat.total_spent || 0).toFixed(2)}</span>
-                    </div>
-                    <div className="adjustment-input-group">
-                      <label className="adjustment-label">Adjustment (+/-):</label>
-                      <input
-                        type="number"
-                        value={editValue}
-                        onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={(e) => handleKeyPress(e, cat.id)}
-                        step="0.01"
-                        className="edit-amount-input"
-                        disabled={isUpdating}
-                        autoFocus
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div className="edit-buttons">
-                      <button
-                        onClick={() => handleSave(cat.id)}
-                        disabled={isUpdating}
-                        className="save-button"
-                      >
-                        {isUpdating ? 'Saving...' : 'Apply'}
-                      </button>
-                      <button
-                        onClick={handleCancel}
-                        disabled={isUpdating}
-                        className="cancel-edit-button"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="amount-display">
-                    <strong>${(cat.total_spent || 0).toFixed(2)}</strong>
-                    <button
-                      onClick={() => handleEditClick(cat)}
-                      className="edit-button"
-                      title="Edit amount"
-                    >
-                      ✏️
-                    </button>
-                  </div>
-                )}
                 {expandedCategoryId === cat.id && (
                   <div className="spending-items-log">
                     {isItemsLoading ? (

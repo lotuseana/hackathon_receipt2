@@ -96,7 +96,7 @@ export const useBudgets = (user) => {
     }
   };
 
-  const updateBudget = async (budgetId, budgetAmount, budgetType = 'monthly') => {
+  const updateBudget = async (budgetId, budgetAmount) => {
     if (!user) return;
     
     setError(null);
@@ -106,7 +106,7 @@ export const useBudgets = (user) => {
         .from('budgets')
         .update({ 
           budget_amount: budgetAmount,
-          budget_type: budgetType,
+          budget_type: 'monthly',
           updated_at: new Date().toISOString()
         })
         .eq('id', budgetId)
@@ -122,7 +122,7 @@ export const useBudgets = (user) => {
     }
   };
 
-  const createBudget = async (categoryId, budgetAmount, budgetType = 'monthly') => {
+  const createBudget = async (categoryId, budgetAmount) => {
     if (!user) return;
     
     setError(null);
@@ -134,7 +134,7 @@ export const useBudgets = (user) => {
           user_id: user.id,
           category_id: categoryId,
           budget_amount: budgetAmount,
-          budget_type: budgetType,
+          budget_type: 'monthly',
           start_date: new Date().toISOString().split('T')[0]
         });
 

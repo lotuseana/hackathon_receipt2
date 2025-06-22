@@ -58,6 +58,22 @@ body {
   background: #6B7A9A;
 }
 
+.manage-budgets-button {
+  background: #333446;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.manage-budgets-button:hover {
+  background: #7F8CAA;
+}
+
 .content-row {
   display: flex;
   flex-direction: row;
@@ -662,6 +678,16 @@ h1 {
   border-bottom: 1px solid #B8CFCE;
   color: #333446;
   font-size: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.category-details-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .category-list-item {
@@ -674,15 +700,20 @@ h1 {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 1rem;
-  padding: 0 5px;
+  font-size: 0.8rem;
+  margin-right: 8px;
+  padding: 5px;
+  color: #555;
+  transition: transform 0.2s;
 }
 
 .spending-items-log {
-  padding-left: 25px;
+  padding-left: 40px;
   margin-top: 5px;
-  border-top: 1px solid #eee;
-  padding-top: 5px;
+  margin-bottom: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 10px;
 }
 
 .spending-items-log ul {
@@ -694,8 +725,21 @@ h1 {
 .spending-items-log li {
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid #e9ecef;
   font-size: 0.9rem;
+}
+
+.spending-items-log li:last-child {
+  border-bottom: none;
+}
+
+.spending-items-log span:first-child {
+  color: #333;
+}
+
+.spending-items-log span:last-child {
+  font-weight: 500;
   color: #555;
 }
 
@@ -723,15 +767,14 @@ h1 {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 14px;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-  opacity: 0.7;
+  font-size: 1rem;
+  margin-left: 10px;
+  padding: 2px 5px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
 }
 
 .edit-button:hover {
-  background-color: #EAEFEF;
   opacity: 1;
 }
 
@@ -1178,6 +1221,11 @@ h1 {
   font-size: 0.9rem;
 }
 
+.edit-budget-input::placeholder {
+  color: #B8CFCE;
+  font-style: italic;
+}
+
 .edit-budget-type {
   padding: 8px;
   border: 1px solid #B8CFCE;
@@ -1367,19 +1415,11 @@ h1 {
 
 /* Mini Budget Progress Bars for Spending Dashboard */
 .budget-progress-mini {
-  margin: 8px 0;
-  padding: 8px;
-  background-color: #f8f9fa;
-  border-radius: 6px;
+  margin: 5px 0 10px 40px;
 }
 
 .progress-bar-container-mini {
-  width: 100%;
-  height: 6px;
-  background-color: #EAEFEF;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-bottom: 6px;
+  height: 8px;
 }
 
 .progress-bar-mini {
@@ -1400,15 +1440,88 @@ h1 {
 }
 
 .progress-percentage-mini {
-  font-weight: bold;
-  color: #333446;
+  font-weight: 500;
+  color: #7F8CAA;
+  font-size: 0.9rem;
+  margin-left: 8px;
 }
 
 /* Right Column Layout */
 .right-column {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 32px;
   flex: 1;
   max-width: 400px;
+}
+
+/* Side Menu Styles */
+.side-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 100;
+}
+
+.side-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.side-menu {
+  position: fixed;
+  top: 0;
+  right: -500px;
+  width: 100%;
+  max-width: 500px;
+  height: 100%;
+  background-color: white;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+  transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 101;
+  display: flex;
+  flex-direction: column;
+}
+
+.side-menu.open {
+  right: 0;
+}
+
+.side-menu-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.close-menu-button {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #aaa;
+  line-height: 1;
+}
+
+.close-menu-button:hover {
+  color: #333;
+}
+
+.side-menu-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.side-menu-content .budget-management-card {
+  box-shadow: none;
+  border-radius: 0;
+  border: none;
+  height: 100%;
 }

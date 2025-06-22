@@ -11,14 +11,16 @@ function BudgetManagement({
 }) {
   const [editingBudget, setEditingBudget] = useState(null);
   const [editAmount, setEditAmount] = useState('');
-  const [editType, setEditType] = useState('monthly');
+  
+  const [creatingForCategory, setCreatingForCategory] = useState(null);
+  const [newAmount, setNewAmount] = useState('');
+  
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState(null);
 
   const handleEditClick = (budget) => {
     setEditingBudget(budget);
     setEditAmount(budget.budget_amount.toString());
-    setEditType(budget.budget_type);
     setError(null);
   };
 
@@ -34,7 +36,7 @@ function BudgetManagement({
         throw new Error("Please enter a valid amount");
       }
       
-      await onUpdateBudget(editingBudget.id, amount, editType);
+      await onUpdateBudget(editingBudget.id, amount);
       setEditingBudget(null);
       setEditAmount('');
     } catch (err) {
@@ -50,26 +52,35 @@ function BudgetManagement({
     setError(null);
   };
 
-  const handleCreateBudget = async (categoryId) => {
-    const amount = prompt("Enter budget amount:");
-    if (!amount) return;
+  const handleCreateClick = (categoryId) => {
+    setCreatingForCategory(categoryId);
+    setNewAmount('');
+    setError(null);
+  };
+
+  const handleCancelCreate = () => {
+    setCreatingForCategory(null);
+    setError(null);
+  };
+
+  const handleSaveNewBudget = async () => {
+    if (!creatingForCategory || !newAmount) return;
     
-    const budgetAmount = parseFloat(amount);
-    if (isNaN(budgetAmount) || budgetAmount < 0) {
-      setError("Please enter a valid amount");
-      return;
-    }
-    
-    const budgetType = prompt("Enter budget type (weekly/monthly):", "monthly");
-    if (!budgetType || !['weekly', 'monthly'].includes(budgetType.toLowerCase())) {
-      setError("Please enter 'weekly' or 'monthly'");
-      return;
-    }
-    
+    setIsUpdating(true);
+    setError(null);
+
     try {
-      await onCreateBudget(categoryId, budgetAmount, budgetType.toLowerCase());
+      const amount = parseFloat(newAmount);
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error("Please enter a valid amount");
+      }
+
+      await onCreateBudget(creatingForCategory, amount);
+      setCreatingForCategory(null);
     } catch (err) {
       setError(err.message);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -92,18 +103,18 @@ function BudgetManagement({
 
   const getAlertMessage = (progress) => {
     if (progress.is_over_budget) {
-      return `You're ${Math.abs(progress.progress_percentage - 100).toFixed(1)}% over your ${progress.budget_type} budget!`;
+      return `You're ${Math.abs(progress.progress_percentage - 100).toFixed(1)}% over your budget!`;
     }
     
     switch (progress.alert_level) {
       case 'critical':
-        return `You're ${progress.progress_percentage.toFixed(1)}% through your ${progress.budget_type} budget!`;
+        return `You're ${progress.progress_percentage.toFixed(1)}% through your budget!`;
       case 'warning':
-        return `You're ${progress.progress_percentage.toFixed(1)}% through your ${progress.budget_type} budget.`;
+        return `You're ${progress.progress_percentage.toFixed(1)}% through your budget.`;
       case 'info':
-        return `You've used ${progress.progress_percentage.toFixed(1)}% of your ${progress.budget_type} budget.`;
+        return `You've used ${progress.progress_percentage.toFixed(1)}% of your budget.`;
       default:
-        return `You have ${progress.remaining_amount.toFixed(2)} remaining in your ${progress.budget_type} budget.`;
+        return `You have ${progress.remaining_amount.toFixed(2)} remaining in your budget.`;
     }
   };
 
@@ -137,7 +148,7 @@ function BudgetManagement({
                 <div className="budget-info">
                   <div className="budget-details">
                     <span className="budget-amount">
-                      ${budget.budget_amount.toFixed(2)} {budget.budget_type}
+                      ${budget.budget_amount.toFixed(2)} monthly
                     </span>
                     {editingBudget?.id === budget.id ? (
                       <div className="edit-budget-form">
@@ -150,15 +161,6 @@ function BudgetManagement({
                           className="edit-budget-input"
                           disabled={isUpdating}
                         />
-                        <select
-                          value={editType}
-                          onChange={(e) => setEditType(e.target.value)}
-                          className="edit-budget-type"
-                          disabled={isUpdating}
-                        >
-                          <option value="weekly">Weekly</option>
-                          <option value="monthly">Monthly</option>
-                        </select>
                         <button
                           onClick={handleSave}
                           disabled={isUpdating}
@@ -218,14 +220,43 @@ function BudgetManagement({
                 </div>
               ) : (
                 <div className="no-budget">
-                  <p>No budget set for this category</p>
-                  <button
-                    onClick={() => handleCreateBudget(category.id)}
-                    className="create-budget-button"
-                    disabled={isLoading}
-                  >
-                    Set Budget
-                  </button>
+                  {creatingForCategory === category.id ? (
+                    <div className="edit-budget-form">
+                      <input
+                        type="number"
+                        placeholder="Monthly Budget"
+                        value={newAmount}
+                        onChange={(e) => setNewAmount(e.target.value)}
+                        className="edit-budget-input"
+                        disabled={isUpdating}
+                      />
+                      <button
+                        onClick={handleSaveNewBudget}
+                        disabled={isUpdating}
+                        className="save-budget-button"
+                      >
+                        {isUpdating ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        onClick={handleCancelCreate}
+                        disabled={isUpdating}
+                        className="cancel-budget-button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p>No budget set for this category</p>
+                      <button
+                        onClick={() => handleCreateClick(category.id)}
+                        className="create-budget-button"
+                        disabled={isLoading}
+                      >
+                        Set Budget
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
