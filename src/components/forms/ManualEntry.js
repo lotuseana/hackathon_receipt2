@@ -3,21 +3,24 @@ import React, { useState } from 'react';
 function ManualEntry({ categories, onAddEntry, isSubmitting = false }) {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [amount, setAmount] = useState('');
+  const [itemName, setItemName] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!selectedCategory || !amount) {
-      setError('Please select a category and enter an amount.');
+    if (!selectedCategory || !amount || !itemName) {
+      setError('Please fill out all fields.');
       return;
     }
     setError('');
     onAddEntry({
       category: selectedCategory,
       total: parseFloat(amount),
+      name: itemName,
     });
     setSelectedCategory('');
     setAmount('');
+    setItemName('');
   };
 
   return (
@@ -44,6 +47,18 @@ function ManualEntry({ categories, onAddEntry, isSubmitting = false }) {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="form-group">
+            <label htmlFor="item-name-input">Item Name</label>
+            <input
+              id="item-name-input"
+              type="text"
+              value={itemName}
+              onChange={(e) => setItemName(e.target.value)}
+              placeholder="e.g., Coffee"
+              required
+              disabled={isSubmitting}
+            />
           </div>
           <div className="form-group">
             <label htmlFor="amount-input">Amount</label>

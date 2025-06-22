@@ -17,7 +17,7 @@ const googleCloudVisionApiKey = process.env.REACT_APP_GOOGLE_CLOUD_VISION_API_KE
 // Initialize Google Cloud Vision service
 const googleCloudVision = new GoogleCloudVisionService(googleCloudVisionApiKey);
 
-export const useReceiptProcessing = (updateCategoryTotal, onBudgetRefresh = null, categories = []) => {
+export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, categories = []) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrText, setOcrText] = useState(null);
@@ -137,7 +137,11 @@ ${text}`
             }
 
             const categoryName = item.category.replace(/^"|"$/g, '').trim();
-            await updateCategoryTotal(categoryName, amount);
+            await addSpendingItem({
+              categoryName,
+              amount,
+              itemName: item.description || 'Scanned Item'
+            });
           }
         }
         

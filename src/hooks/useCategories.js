@@ -27,34 +27,72 @@ export const useCategories = (user) => {
     setIsLoading(false);
   };
 
-  const updateCategoryTotal = async (categoryName, amount) => {
+  const addSpendingItem = async ({ categoryName, amount, itemName }) => {
     if (!user) return;
     
     setError(null);
+
+    try {
+      const { data: categoryData, error: fetchError } = await supabase
+        .from('categories')
+        .select('id, total_spent')
+        .eq('user_id', user.id)
+        .ilike('name', categoryName)
+        .single();
+
+      if (fetchError || !categoryData) {
+        throw new Error(`Could not find the category "${categoryName}" in the database.`);
+      }
+
+      const { error: insertError } = await supabase
+        .from('spending_items')
+        .insert({
+          user_id: user.id,
+          category_id: categoryData.id,
+          item_name: itemName,
+          amount: amount,
+        });
+
+      if (insertError) {
+        throw new Error(`Could not add spending item: ${insertError.message}`);
+      }
+
+      const newTotal = categoryData.total_spent + amount;
+
+      const { error: updateError } = await supabase
+        .from('categories')
+        .update({ total_spent: newTotal })
+        .eq('id', categoryData.id);
+
+      if (updateError) {
+        // If this fails, we should ideally roll back the spending item insert.
+        // For now, we'll just throw an error.
+        throw new Error(`Could not update category total: ${updateError.message}`);
+      }
+      
+      await fetchCategories();
+    } catch (err) {
+      setError(err.message);
+      throw err;
+    }
+  };
+  
+  const fetchSpendingItems = async (categoryId) => {
+    if (!user) return [];
     
-    const { data: categoryData, error: fetchError } = await supabase
-      .from('categories')
-      .select('id, total_spent')
+    const { data, error } = await supabase
+      .from('spending_items')
+      .select('*')
       .eq('user_id', user.id)
-      .ilike('name', categoryName)
-      .single();
-
-    if (fetchError || !categoryData) {
-      throw new Error(`Could not find the category "${categoryName}" in the database.`);
-    }
-
-    const newTotal = categoryData.total_spent + amount;
-
-    const { error: updateError } = await supabase
-      .from('categories')
-      .update({ total_spent: newTotal })
-      .eq('id', categoryData.id);
-
-    if (updateError) {
-      throw new Error(`Could not update category total: ${updateError.message}`);
+      .eq('category_id', categoryId)
+      .order('created_at', { descending: true });
+      
+    if (error) {
+      console.error('Error fetching spending items:', error);
+      return [];
     }
     
-    await fetchCategories();
+    return data;
   };
 
   const updateCategoryAmount = async (categoryId, newAmount) => {
@@ -109,7 +147,8 @@ export const useCategories = (user) => {
     categories,
     isLoading,
     error,
-    updateCategoryTotal,
+    addSpendingItem,
+    fetchSpendingItems,
     updateCategoryAmount,
     resetAllCategories,
     fetchCategories

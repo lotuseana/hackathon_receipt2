@@ -18,14 +18,31 @@ function SpendingDashboard({
   onReset,
   onUpdateCategory,
   budgets = [],
-  budgetProgress = []
+  budgetProgress = [],
+  fetchSpendingItems,
 }) {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
   const [updateError, setUpdateError] = useState(null);
+  const [expandedCategoryId, setExpandedCategoryId] = useState(null);
+  const [spendingItems, setSpendingItems] = useState([]);
+  const [isItemsLoading, setIsItemsLoading] = useState(false);
 
   const grandTotal = categories.reduce((total, category) => total + (category.total_spent || 0), 0);
+
+  const handleToggleCategory = async (categoryId) => {
+    if (expandedCategoryId === categoryId) {
+      setExpandedCategoryId(null);
+      setSpendingItems([]);
+    } else {
+      setExpandedCategoryId(categoryId);
+      setIsItemsLoading(true);
+      const items = await fetchSpendingItems(categoryId);
+      setSpendingItems(items);
+      setIsItemsLoading(false);
+    }
+  };
 
   const handleEditClick = (category) => {
     setEditingId(category.id);
@@ -126,6 +143,9 @@ function SpendingDashboard({
                     className="category-color-circle"
                     style={{ backgroundColor: categoryColors[index % categoryColors.length] }}
                   ></span>
+                  <button onClick={() => handleToggleCategory(cat.id)} className="category-expand-button">
+                    {expandedCategoryId === cat.id ? '▼' : '▶'}
+                  </button>
                   <span>{cat.name}</span>
                 </div>
                 
@@ -198,6 +218,26 @@ function SpendingDashboard({
                     >
                       ✏️
                     </button>
+                  </div>
+                )}
+                {expandedCategoryId === cat.id && (
+                  <div className="spending-items-log">
+                    {isItemsLoading ? (
+                      <p>Loading items...</p>
+                    ) : (
+                      <ul>
+                        {spendingItems.length > 0 ? (
+                          spendingItems.map(item => (
+                            <li key={item.id}>
+                              <span>{item.item_name}</span>
+                              <span>${item.amount.toFixed(2)}</span>
+                            </li>
+                          ))
+                        ) : (
+                          <li>No items found for this category.</li>
+                        )}
+                      </ul>
+                    )}
                   </div>
                 )}
               </li>

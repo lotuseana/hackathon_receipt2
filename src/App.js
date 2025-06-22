@@ -18,7 +18,8 @@ function App() {
     categories, 
     isLoading: categoriesLoading, 
     error: categoriesError, 
-    updateCategoryTotal, 
+    addSpendingItem,
+    fetchSpendingItems,
     updateCategoryAmount,
     resetAllCategories 
   } = useCategories(user);
@@ -47,7 +48,7 @@ function App() {
     handleCancel,
     processReceipt,
     setError: setReceiptError
-  } = useReceiptProcessing(updateCategoryTotal, fetchBudgets, categories);
+  } = useReceiptProcessing(addSpendingItem, fetchBudgets, categories);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [spendingTips, setSpendingTips] = useState([]);
@@ -66,20 +67,20 @@ function App() {
     }
   };
 
-  const handleAddManualEntry = async ({ category: categoryName, total: amount }) => {
+  const handleAddManualEntry = async ({ category: categoryName, total: amount, name: itemName }) => {
     if (!user) return;
     
     setIsSubmitting(true);
     try {
-      if (!categoryName || !amount) {
-        throw new Error("Category and amount are required.");
+      if (!categoryName || !amount || !itemName) {
+        throw new Error("Category, amount, and item name are required.");
       }
 
       if (isNaN(amount) || amount <= 0) {
         throw new Error(`Invalid amount: ${amount}`);
       }
 
-      await updateCategoryTotal(categoryName, amount);
+      await addSpendingItem({ categoryName, amount, itemName });
       
       // Refresh budgets to update progress
       await fetchBudgets();
@@ -230,6 +231,7 @@ function App() {
           onUpdateCategory={handleUpdateCategory}
           budgets={budgets}
           budgetProgress={budgetProgress}
+          fetchSpendingItems={fetchSpendingItems}
         />
         
         <div className="right-column">
