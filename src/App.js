@@ -243,15 +243,15 @@ function App() {
           budgetProgress={budgetProgress}
           fetchSpendingItems={fetchItemsForCategory}
         />
-        
-        <div className="right-column">
-          <SpendingTips 
-            tips={spendingTips}
-            onGenerate={handleGenerateTips}
-            isLoading={isTipsLoading}
-            error={tipsError}
-          />
-        </div>
+      </div>
+
+      <div className="tips-row">
+        <SpendingTips 
+          tips={spendingTips}
+          onGenerate={handleGenerateTips}
+          isLoading={isTipsLoading}
+          error={tipsError}
+        />
       </div>
 
       <SideMenu isOpen={isBudgetMenuOpen} onClose={() => setBudgetMenuOpen(false)}>

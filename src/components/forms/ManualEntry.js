@@ -25,9 +25,6 @@ function ManualEntry({ categories, onAddEntry, isSubmitting = false }) {
 
   return (
     <div className="manual-entry-card">
-      <div className="or-divider">
-        <span>OR</span>
-      </div>
       <h3>Add a Manual Entry</h3>
       <form onSubmit={handleSubmit} className="manual-entry-form">
         <div className="form-row">
