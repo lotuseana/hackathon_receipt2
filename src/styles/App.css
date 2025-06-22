@@ -851,6 +851,11 @@ h1 {
     width: 100%;
     max-width: 800px;
   }
+  
+  .right-column {
+    width: 100%;
+    max-width: 800px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -914,17 +919,23 @@ h1 {
   width: 100%;
   padding: 12px;
   border: 1px solid #B8CFCE;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 1rem;
-  background-color: #f8f9fa;
+  background-color: white;
   color: #333446;
-  box-sizing: border-box;
+}
+
+.manual-entry-form select:focus,
+.manual-entry-form input:focus {
+  outline: none;
+  border-color: #7F8CAA;
+  box-shadow: 0 0 0 2px rgba(127, 140, 170, 0.2);
 }
 
 .add-entry-button {
   width: 100%;
   padding: 14px 24px;
-  background-color: #7F8CAA;
+  background-color: #333446;
   color: white;
   border: none;
   border-radius: 8px;
@@ -935,16 +946,389 @@ h1 {
 }
 
 .add-entry-button:hover {
+  background-color: #7F8CAA;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.3);
+}
+
+.add-entry-button:disabled {
   background-color: #B8CFCE;
-  color: #333446;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(51, 52, 70, 0.15);
+  color: #7F8CAA;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .error-message-small {
-  color: #dc2626;
-  margin-top: 12px;
-  text-align: center;
+  color: #e74c3c;
   font-size: 0.9rem;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.or-divider {
+  text-align: center;
+  margin: 24px 0;
+  position: relative;
+}
+
+.or-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background-color: #B8CFCE;
+}
+
+.or-divider span {
+  background-color: white;
+  padding: 0 16px;
+  color: #7F8CAA;
   font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Budget Management Styles */
+.budget-management-card {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.1);
+  border: 1px solid #B8CFCE;
+  margin-bottom: 20px;
+}
+
+.budget-management-card h2 {
+  margin-top: 0;
+  margin-bottom: 24px;
+  color: #333446;
+  font-size: 1.5rem;
+}
+
+.budget-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.budget-category-item {
+  border: 1px solid #B8CFCE;
+  border-radius: 12px;
+  padding: 20px;
+  background-color: #f8f9fa;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.category-header h3 {
+  margin: 0;
+  color: #333446;
+  font-size: 1.2rem;
+}
+
+.spent-amount {
+  color: #7F8CAA;
+  font-size: 0.9rem;
+}
+
+.budget-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.budget-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.budget-amount {
+  font-weight: bold;
+  color: #333446;
+  font-size: 1.1rem;
+}
+
+.budget-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-budget-button,
+.delete-budget-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  opacity: 0.7;
+}
+
+.edit-budget-button:hover,
+.delete-budget-button:hover {
+  background-color: #EAEFEF;
+  opacity: 1;
+}
+
+.delete-budget-button:hover {
+  color: #e74c3c;
+}
+
+.edit-budget-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.edit-budget-input {
+  width: 120px;
+  padding: 8px;
+  border: 1px solid #B8CFCE;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.edit-budget-type {
+  padding: 8px;
+  border: 1px solid #B8CFCE;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.save-budget-button,
+.cancel-budget-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.save-budget-button {
+  background-color: #27ae60;
+  color: white;
+}
+
+.save-budget-button:hover {
+  background-color: #229954;
+}
+
+.cancel-budget-button {
+  background-color: #B8CFCE;
+  color: #333446;
+}
+
+.cancel-budget-button:hover {
+  background-color: #A79AC3;
+}
+
+.budget-progress {
+  margin-top: 12px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #EAEFEF;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.progress-percentage {
+  font-weight: bold;
+  color: #333446;
+}
+
+.progress-message {
+  color: #7F8CAA;
+  font-size: 0.8rem;
+}
+
+.no-budget {
+  text-align: center;
+  color: #7F8CAA;
+  font-style: italic;
+}
+
+.create-budget-button {
+  margin-top: 8px;
+  padding: 8px 16px;
+  background-color: #7F8CAA;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.create-budget-button:hover {
+  background-color: #6B7A9A;
+}
+
+/* Budget Alerts Styles */
+.budget-alerts-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.1);
+  border: 1px solid #B8CFCE;
+  margin-bottom: 20px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.budget-alerts-container h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #333446;
+  font-size: 1.3rem;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.budget-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.alert-critical {
+  background-color: #fdf2f2;
+  border-left-color: #e74c3c;
+}
+
+.alert-warning {
+  background-color: #fef9e7;
+  border-left-color: #f39c12;
+}
+
+.alert-info {
+  background-color: #f0f8ff;
+  border-left-color: #3498db;
+}
+
+.alert-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.alert-content {
+  flex: 1;
+}
+
+.alert-category {
+  font-weight: bold;
+  color: #333446;
+  margin-bottom: 4px;
+}
+
+.alert-message {
+  color: #333446;
+  margin-bottom: 8px;
+}
+
+.alert-details {
+  display: flex;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: #7F8CAA;
+}
+
+.dismiss-alert-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  color: #7F8CAA;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.dismiss-alert-button:hover {
+  background-color: #EAEFEF;
+  color: #333446;
+}
+
+/* Mini Budget Progress Bars for Spending Dashboard */
+.budget-progress-mini {
+  margin: 8px 0;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+}
+
+.progress-bar-container-mini {
+  width: 100%;
+  height: 6px;
+  background-color: #EAEFEF;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.progress-bar-mini {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.budget-info-mini {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.budget-amount-mini {
+  color: #7F8CAA;
+  font-weight: 500;
+}
+
+.progress-percentage-mini {
+  font-weight: bold;
+  color: #333446;
+}
+
+/* Right Column Layout */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  max-width: 400px;
 }

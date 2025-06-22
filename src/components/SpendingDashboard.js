@@ -16,7 +16,9 @@ function SpendingDashboard({
   categories, 
   isResetting, 
   onReset,
-  onUpdateCategory
+  onUpdateCategory,
+  budgets = [],
+  budgetProgress = []
 }) {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState('');
@@ -71,6 +73,33 @@ function SpendingDashboard({
     }
   };
 
+  const getBudgetForCategory = (categoryId) => {
+    return budgets.find(budget => budget.category_id === categoryId);
+  };
+
+  const getProgressForCategory = (categoryId) => {
+    return budgetProgress.find(progress => 
+      budgets.find(budget => budget.id === progress.budget_id)?.category_id === categoryId
+    );
+  };
+
+  const getProgressBarColor = (alertLevel) => {
+    switch (alertLevel) {
+      case 'critical':
+        return '#e74c3c';
+      case 'warning':
+        return '#f39c12';
+      case 'info':
+        return '#3498db';
+      default:
+        return '#27ae60';
+    }
+  };
+
+  const getProgressBarWidth = (progress) => {
+    return Math.min(progress, 100);
+  };
+
   return (
     <div className="spending-breakdown-card">
       <div className="category-header">
@@ -86,65 +115,94 @@ function SpendingDashboard({
       
       <div className="categories-list">
         <ul>
-          {categories.map((cat, index) => (
-            <li key={cat.id}>
-              <div className="category-list-item">
-                <span 
-                  className="category-color-circle"
-                  style={{ backgroundColor: categoryColors[index % categoryColors.length] }}
-                ></span>
-                <span>{cat.name}</span>
-              </div>
-              {editingId === cat.id ? (
-                <div className="edit-amount-container">
-                  <div className="current-amount-display">
-                    <span className="current-label">Current: ${(cat.total_spent || 0).toFixed(2)}</span>
-                  </div>
-                  <div className="adjustment-input-group">
-                    <label className="adjustment-label">Adjustment (+/-):</label>
-                    <input
-                      type="number"
-                      value={editValue}
-                      onChange={(e) => setEditValue(e.target.value)}
-                      onKeyDown={(e) => handleKeyPress(e, cat.id)}
-                      step="0.01"
-                      className="edit-amount-input"
-                      disabled={isUpdating}
-                      autoFocus
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div className="edit-buttons">
-                    <button
-                      onClick={() => handleSave(cat.id)}
-                      disabled={isUpdating}
-                      className="save-button"
-                    >
-                      {isUpdating ? 'Saving...' : 'Apply'}
-                    </button>
-                    <button
-                      onClick={handleCancel}
-                      disabled={isUpdating}
-                      className="cancel-edit-button"
-                    >
-                      Cancel
-                    </button>
-                  </div>
+          {categories.map((cat, index) => {
+            const budget = getBudgetForCategory(cat.id);
+            const progress = getProgressForCategory(cat.id);
+            
+            return (
+              <li key={cat.id}>
+                <div className="category-list-item">
+                  <span 
+                    className="category-color-circle"
+                    style={{ backgroundColor: categoryColors[index % categoryColors.length] }}
+                  ></span>
+                  <span>{cat.name}</span>
                 </div>
-              ) : (
-                <div className="amount-display">
-                  <strong>${(cat.total_spent || 0).toFixed(2)}</strong>
-                  <button
-                    onClick={() => handleEditClick(cat)}
-                    className="edit-button"
-                    title="Edit amount"
-                  >
-                    ✏️
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
+                
+                {/* Budget Progress Bar */}
+                {budget && progress && (
+                  <div className="budget-progress-mini">
+                    <div className="progress-bar-container-mini">
+                      <div 
+                        className="progress-bar-mini"
+                        style={{
+                          width: `${getProgressBarWidth(progress.progress_percentage)}%`,
+                          backgroundColor: getProgressBarColor(progress.alert_level)
+                        }}
+                      ></div>
+                    </div>
+                    <div className="budget-info-mini">
+                      <span className="budget-amount-mini">
+                        ${budget.budget_amount.toFixed(2)} {budget.budget_type}
+                      </span>
+                      <span className="progress-percentage-mini">
+                        {progress.progress_percentage.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
+                
+                {editingId === cat.id ? (
+                  <div className="edit-amount-container">
+                    <div className="current-amount-display">
+                      <span className="current-label">Current: ${(cat.total_spent || 0).toFixed(2)}</span>
+                    </div>
+                    <div className="adjustment-input-group">
+                      <label className="adjustment-label">Adjustment (+/-):</label>
+                      <input
+                        type="number"
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onKeyDown={(e) => handleKeyPress(e, cat.id)}
+                        step="0.01"
+                        className="edit-amount-input"
+                        disabled={isUpdating}
+                        autoFocus
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className="edit-buttons">
+                      <button
+                        onClick={() => handleSave(cat.id)}
+                        disabled={isUpdating}
+                        className="save-button"
+                      >
+                        {isUpdating ? 'Saving...' : 'Apply'}
+                      </button>
+                      <button
+                        onClick={handleCancel}
+                        disabled={isUpdating}
+                        className="cancel-edit-button"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="amount-display">
+                    <strong>${(cat.total_spent || 0).toFixed(2)}</strong>
+                    <button
+                      onClick={() => handleEditClick(cat)}
+                      className="edit-button"
+                      title="Edit amount"
+                    >
+                      ✏️
+                    </button>
+                  </div>
+                )}
+              </li>
+            );
+          })}
         </ul>
         {updateError && (
           <div className="error-message">

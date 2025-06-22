@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { useCategories } from './hooks/useCategories';
+import { useBudgets } from './hooks/useBudgets';
 import { useReceiptProcessing } from './hooks/useReceiptProcessing';
 import Header from './components/Header';
 import ReceiptUpload from './components/ReceiptUpload';
 import SpendingDashboard from './components/SpendingDashboard';
+import BudgetManagement from './components/BudgetManagement';
+import BudgetAlerts from './components/BudgetAlerts';
 import SpendingTips from './components/tips/SpendingTips';
 import Auth from './components/auth/Auth';
 import './styles/App.css';
@@ -21,6 +24,18 @@ function App() {
   } = useCategories(user);
   
   const {
+    budgets,
+    budgetProgress,
+    isLoading: budgetsLoading,
+    error: budgetsError,
+    updateBudget,
+    createBudget,
+    deleteBudget,
+    getBudgetAlerts,
+    fetchBudgets
+  } = useBudgets(user);
+  
+  const {
     selectedFile,
     previewUrl,
     ocrText,
@@ -32,18 +47,20 @@ function App() {
     handleCancel,
     processReceipt,
     setError: setReceiptError
-  } = useReceiptProcessing(updateCategoryTotal);
+  } = useReceiptProcessing(updateCategoryTotal, fetchBudgets);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [spendingTips, setSpendingTips] = useState([]);
   const [isTipsLoading, setIsTipsLoading] = useState(false);
   const [tipsError, setTipsError] = useState(null);
   const [tipsGeneratedInitially, setTipsGeneratedInitially] = useState(false);
+  const [dismissedAlerts, setDismissedAlerts] = useState([]);
 
   const handleSignOut = async () => {
     try {
       await signOut();
       setSpendingTips([]);
+      setDismissedAlerts([]);
     } catch (error) {
       console.error('Sign out error:', error);
     }
@@ -63,6 +80,9 @@ function App() {
       }
 
       await updateCategoryTotal(categoryName, amount);
+      
+      // Refresh budgets to update progress
+      await fetchBudgets();
 
       if (tipsGeneratedInitially) {
         handleGenerateTips();
@@ -72,6 +92,28 @@ function App() {
       setReceiptError(err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleUpdateCategory = async (categoryId, newAmount) => {
+    try {
+      await updateCategoryAmount(categoryId, newAmount);
+      // Refresh budgets to update progress
+      await fetchBudgets();
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  };
+
+  const handleResetCategories = async () => {
+    try {
+      await resetAllCategories();
+      // Refresh budgets to update progress
+      await fetchBudgets();
+    } catch (err) {
+      console.error(err);
+      throw err;
     }
   };
 
@@ -138,6 +180,14 @@ function App() {
     }
   };
 
+  const handleDismissAlert = (alertIndex) => {
+    setDismissedAlerts(prev => [...prev, alertIndex]);
+  };
+
+  const activeBudgetAlerts = getBudgetAlerts().filter((_, index) => 
+    !dismissedAlerts.includes(index)
+  );
+
   if (isLoading) {
     return <div className="loading-container">Loading...</div>;
   }
@@ -150,6 +200,12 @@ function App() {
     <div className="App">
       <Header user={user} onSignOut={handleSignOut} />
       
+      {/* Budget Alerts */}
+      <BudgetAlerts 
+        budgetAlerts={activeBudgetAlerts}
+        onDismiss={handleDismissAlert}
+      />
+      
       <div className="content-row">
         <ReceiptUpload
           selectedFile={selectedFile}
@@ -157,7 +213,7 @@ function App() {
           ocrText={ocrText}
           structuredData={structuredData}
           isExtracting={isExtracting}
-          error={receiptError || categoriesError}
+          error={receiptError || categoriesError || budgetsError}
           onFileSelect={handleFileSelect}
           onCapture={handleCapture}
           onCancel={handleCancel}
@@ -170,16 +226,30 @@ function App() {
         <SpendingDashboard
           categories={categories}
           isResetting={categoriesLoading}
-          onReset={resetAllCategories}
-          onUpdateCategory={updateCategoryAmount}
+          onReset={handleResetCategories}
+          onUpdateCategory={handleUpdateCategory}
+          budgets={budgets}
+          budgetProgress={budgetProgress}
         />
         
-        <SpendingTips 
-          tips={spendingTips}
-          onGenerate={handleGenerateTips}
-          isLoading={isTipsLoading}
-          error={tipsError}
-        />
+        <div className="right-column">
+          <BudgetManagement
+            categories={categories}
+            budgets={budgets}
+            budgetProgress={budgetProgress}
+            onUpdateBudget={updateBudget}
+            onCreateBudget={createBudget}
+            onDeleteBudget={deleteBudget}
+            isLoading={budgetsLoading}
+          />
+          
+          <SpendingTips 
+            tips={spendingTips}
+            onGenerate={handleGenerateTips}
+            isLoading={isTipsLoading}
+            error={tipsError}
+          />
+        </div>
       </div>
     </div>
   );

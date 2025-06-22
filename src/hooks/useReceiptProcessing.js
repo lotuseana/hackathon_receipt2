@@ -6,7 +6,7 @@ const anthropic = new Anthropic({
   dangerouslyAllowBrowser: true,
 });
 
-export const useReceiptProcessing = (updateCategoryTotal) => {
+export const useReceiptProcessing = (updateCategoryTotal, onBudgetRefresh = null) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrText, setOcrText] = useState(null);
@@ -105,6 +105,11 @@ export const useReceiptProcessing = (updateCategoryTotal) => {
 
         const categoryName = jsonData.category.replace(/^"|"$/g, '').trim();
         await updateCategoryTotal(categoryName, amount);
+        
+        // Refresh budgets if callback is provided
+        if (onBudgetRefresh) {
+          await onBudgetRefresh();
+        }
       } else {
         throw new Error("AI response did not include a 'category' and a 'total'.");
       }
