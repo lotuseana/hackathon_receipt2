@@ -35,8 +35,7 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(51, 52, 70, 0.1);
   border: 1px solid #B8CFCE;
-  flex: 1;
-  min-width: 500px;
+  flex: 1 1 450px;
 }
 
 .categories-display-card {
@@ -55,8 +54,70 @@ body {
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(51, 52, 70, 0.1);
   border: 1px solid #B8CFCE;
-  flex-shrink: 0;
-  width: 450px;
+  flex: 1 1 350px;
+}
+
+.spending-tips-card {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(51, 52, 70, 0.1);
+  border: 1px solid #B8CFCE;
+  flex: 1.5 1 450px;
+}
+
+.spending-tips-card h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #333446;
+  font-size: 1.5rem;
+}
+
+.tips-description {
+  font-size: 1rem;
+  color: #7F8CAA;
+  margin-bottom: 20px;
+}
+
+.generate-tips-button {
+  width: 100%;
+  padding: 14px 24px;
+  background-color: #333446;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.generate-tips-button:hover {
+  background-color: #7F8CAA;
+}
+
+.generate-tips-button:disabled {
+  background-color: #B8CFCE;
+  color: #7F8CAA;
+  cursor: not-allowed;
+}
+
+.spending-tips-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.spending-tips-list li {
+  background: #EAEFEF;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  color: #333446;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-left: 4px solid #7F8CAA;
 }
 
 h1 {
@@ -424,8 +485,9 @@ h1 {
 }
 
 .chart-wrapper {
-  height: 400px;
+  height: 280px;
   position: relative;
+  margin-bottom: 20px;
 }
 
 .chart-container {
@@ -444,10 +506,12 @@ h1 {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .total-amount {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: #333446;
 }
@@ -506,6 +570,19 @@ h1 {
   border-bottom: 1px solid #B8CFCE;
   color: #333446;
   font-size: 1rem;
+}
+
+.category-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.category-color-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .categories-list li:last-child {
@@ -612,7 +689,7 @@ h1 {
     max-width: 800px;
   }
   
-  .spending-breakdown-card {
+  .spending-breakdown-card, .spending-tips-card {
     width: 100%;
     max-width: 800px;
   }
@@ -627,7 +704,7 @@ h1 {
     font-size: 2rem;
   }
   
-  .main-card, .spending-breakdown-card {
+  .main-card, .spending-breakdown-card, .spending-tips-card {
     padding: 20px;
   }
   

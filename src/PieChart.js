@@ -10,7 +10,7 @@ import {
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-function PieChart({ categories }) {
+function PieChart({ categories, colors }) {
   const nonZeroCategories = categories.filter(cat => (cat.total_spent || 0) > 0);
   const totalSpent = nonZeroCategories.reduce((sum, cat) => sum + (cat.total_spent || 0), 0);
 
@@ -21,10 +21,7 @@ function PieChart({ categories }) {
     datasets: [{
       data: hasData ? nonZeroCategories.map(cat => cat.total_spent || 0) : [1],
       backgroundColor: hasData
-        ? [
-            '#333446', '#7F8CAA', '#B8CFCE', '#EAEFEF',
-            '#A8B5C4', '#D4E4E6', '#C5D1E8', '#E8F0F2'
-          ]
+        ? nonZeroCategories.map(cat => colors[categories.findIndex(c => c.id === cat.id) % colors.length])
         : ['#EAEFEF'],
       borderColor: hasData ? '#333446' : '#B8CFCE',
       borderWidth: hasData ? 2 : 1,
@@ -39,18 +36,11 @@ function PieChart({ categories }) {
     cutout: '60%',
     plugins: {
       legend: {
-        display: hasData,
-        position: 'bottom',
-        labels: {
-          padding: 20,
-          usePointStyle: true,
-          font: { size: 12, weight: 'bold' },
-          color: '#333446'
-        }
+        display: false,
       },
       tooltip: {
         enabled: hasData,
-        backgroundColor: 'rgba(51, 52, 70, 0.9)',
+        backgroundColor: '#333446',
         titleColor: '#EAEFEF',
         bodyColor: '#EAEFEF',
         borderColor: '#B8CFCE',
@@ -70,7 +60,7 @@ function PieChart({ categories }) {
     },
     animation: {
       animateRotate: hasData,
-      animateScale: hasData,
+      animateScale: false,
       duration: 1000,
       easing: 'easeOutQuart'
     }
@@ -81,11 +71,11 @@ function PieChart({ categories }) {
       <h3>Spending Breakdown</h3>
       <div className="chart-wrapper">
         <div className="chart-container">
+          <Doughnut data={data} options={options} />
           <div className="center-total">
             <div className="total-amount">${totalSpent.toFixed(2)}</div>
             <div className="total-label">Total Spent</div>
           </div>
-          <Doughnut data={data} options={options} />
         </div>
       </div>
     </div>
