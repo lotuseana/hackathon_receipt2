@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Quicksand:wght@400;500;700&display=swap');
+
 * {
   box-sizing: border-box;
 }
 
 body {
-  background: linear-gradient(135deg, #FFFDE4 0%, #F9F6E7 100%);
-  font-family: 'Quicksand', 'Nunito', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  background: linear-gradient(135deg, #FFE082 0%, #F4F6F8 100%);
+  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -12,8 +14,18 @@ body {
   margin: 0;
   padding: 10px;
   min-height: 100vh;
-  background-image: url('data:image/svg+xml;utf8,<svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="30" rx="60" ry="30" fill="%23FFF9C4" fill-opacity="0.25"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="30" rx="60" ry="30" fill="%23FFE082" fill-opacity="0.22"/></svg>');
   background-repeat: repeat;
+}
+
+h1, h2, h3, .top-bar, .main-card h2 {
+  font-family: 'Baloo 2', cursive;
+}
+
+.main-card, .spending-breakdown-card, .spending-tips-card, .categories-display-card, input, select, button, label, .manual-entry-form, .categories-list, .budget-category-item {
+  font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
 }
 
 .App {
@@ -23,7 +35,6 @@ body {
   gap: 15px;
   width: 100%;
   margin: 0 auto;
-  font-family: 'Quicksand', 'Nunito', 'Poppins', sans-serif;
 }
 
 .top-bar {
@@ -33,7 +44,7 @@ body {
   width: 100%;
   padding: 0 10px;
   margin-bottom: 15px;
-  background: linear-gradient(90deg, #FFFDE4 60%, #B2F7EF 100%);
+  background: linear-gradient(90deg, #ffef92 60%, #B2F7EF 100%);
   border-radius: 0 0 32px 32px;
   box-shadow: 0 4px 16px rgba(39, 174, 96, 0.07);
   min-height: 70px;
@@ -94,7 +105,7 @@ body {
 }
 
 .main-card, .spending-breakdown-card, .spending-tips-card, .categories-display-card {
-  background: #fffbe9;
+  background: #fff;
   padding: 28px;
   border-radius: 24px;
   box-shadow: 0 6px 24px rgba(39, 174, 96, 0.08);
@@ -187,7 +198,6 @@ h1 {
   padding: 0;
   color: #27ae60;
   width: 100%;
-  font-family: 'Quicksand', 'Nunito', 'Poppins', sans-serif;
 }
 
 .main-card h2, .categories-display-card h2, .spending-breakdown-card h2 {
@@ -838,47 +848,51 @@ h1 {
 
 .edit-amount-container {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 16px 18px 14px 18px;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(51,52,70,0.06);
 }
 
 .current-amount-display {
-  margin-right: 8px;
-}
-
-.current-label {
-  font-size: 12px;
-  color: #7F8CAA;
-  font-weight: 500;
+  margin-bottom: 2px;
 }
 
 .adjustment-input-group {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  width: 100%;
 }
 
 .adjustment-label {
-  font-size: 11px;
-  color: #333446;
-  font-weight: 500;
-  text-align: center;
+  font-size: 12px;
+  color: #7F8CAA;
+  font-weight: 600;
+  text-align: left;
+  margin-bottom: 2px;
 }
 
 .edit-amount-input {
-  width: 80px;
-  padding: 6px 8px;
-  border: 1px solid #B8CFCE;
-  border-radius: 4px;
-  font-size: 14px;
-  text-align: center;
+  width: 120px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  background: #fff;
+  color: #333446;
+  box-shadow: 0 1px 4px rgba(127,140,170,0.08);
+  outline: none;
+  transition: box-shadow 0.2s;
+  text-align: left;
 }
 
 .edit-amount-input:focus {
-  outline: none;
-  border-color: #7F8CAA;
-  box-shadow: 0 0 0 2px rgba(127, 140, 170, 0.2);
+  box-shadow: 0 0 0 2px #B2F7EF;
 }
 
 .edit-amount-input::placeholder {
@@ -888,23 +902,26 @@ h1 {
 
 .edit-buttons {
   display: flex;
-  gap: 4px;
+  gap: 10px;
+  margin-top: 8px;
 }
 
 .save-button {
-  padding: 4px 8px;
-  background-color: #42b72a;
-  color: white;
+  padding: 8px 20px;
+  background-color: #4CAF50;
+  color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(76,175,80,0.08);
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .save-button:hover:not(:disabled) {
-  background-color: #36a420;
+  background-color: #388E3C;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.15);
 }
 
 .save-button:disabled {
@@ -913,20 +930,22 @@ h1 {
 }
 
 .cancel-edit-button {
-  padding: 4px 8px;
-  background-color: #7F8CAA;
-  color: white;
+  padding: 8px 20px;
+  background-color: #ECEFF1;
+  color: #333446;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  transition: background-color 0.2s ease;
+  font-size: 1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(127,140,170,0.08);
+  transition: background 0.2s, box-shadow 0.2s;
 }
 
 .cancel-edit-button:hover:not(:disabled) {
-  background-color: #B8CFCE;
-  color: #333446;
+  background-color: #CFD8DC;
+  color: #222;
+  box-shadow: 0 4px 12px rgba(127,140,170,0.13);
 }
 
 .cancel-edit-button:disabled {
@@ -1059,6 +1078,25 @@ h1 {
   .chart-section .chart-wrapper {
     height: 250px;
   }
+  .edit-amount-container {
+    padding: 10px 8px 8px 8px;
+    gap: 8px;
+  }
+  .edit-amount-input {
+    width: 100%;
+    font-size: 1rem;
+  }
+  .edit-buttons {
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .save-button, .cancel-edit-button {
+    width: 100%;
+    font-size: 1rem;
+    padding: 10px 0;
+  }
 }
 
 .manual-entry-card {
@@ -1081,8 +1119,8 @@ h1 {
 
 .manual-entry-form .form-row {
   display: grid;
-  grid-template-columns: 1fr 2.5fr 1fr;
-  gap: 15px;
+  grid-template-columns: 1.2fr 2fr 1.2fr;
+  gap: 18px;
   margin-bottom: 20px;
 }
 
@@ -1091,14 +1129,13 @@ h1 {
 }
 
 #amount-input {
-  width: 100px;
-  min-width: 70px;
-  max-width: 120px;
+  width: 100%;
 }
 
 .manual-entry-form .form-group {
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 
 .manual-entry-form label {
@@ -1151,6 +1188,7 @@ h1 {
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(51, 52, 70, 0.2);
+  margin-top: 18px;
 }
 
 .add-entry-button:hover {
@@ -1170,7 +1208,7 @@ h1 {
 .error-message-small {
   color: #e74c3c;
   font-size: 0.9rem;
-  margin-top: 12px;
+  margin-top: 18px;
   text-align: center;
   padding: 8px 12px;
   background-color: #fdf2f2;
@@ -1197,6 +1235,10 @@ h1 {
   
   .add-entry-button {
     padding: 14px 20px;
+    margin-top: 12px;
+  }
+  .error-message-small {
+    margin-top: 12px;
   }
 }
 

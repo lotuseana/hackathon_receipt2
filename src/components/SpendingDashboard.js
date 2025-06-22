@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import PieChart from './charts/PieChart';
 
 const categoryColors = [
-  '#F9E79F', // Pastel Yellow
-  '#B2F7EF', // Pastel Aqua
-  '#A3E4D7', // Pastel Mint
-  '#AED6F1', // Pastel Blue
-  '#FAD7A0', // Pastel Peach
-  '#F6C1C7', // Pastel Pink
-  '#D4EFDF', // Pastel Green
-  '#F7DC6F'  // Budgie Yellow
+  '#F6EFC7', // Soft Pastel Yellow
+  '#BEE3E0', // Soft Pastel Aqua
+  '#C7E8CA', // Soft Pastel Mint
+  '#C9D8F6', // Soft Pastel Blue
+  '#F9E0C7', // Soft Pastel Peach
+  '#F6D1D5', // Soft Pastel Pink
+  '#D8EAD3', // Soft Pastel Green
+  '#F7E6A9'  // Muted Budgie Yellow
 ];
 
 function SpendingDashboard({ 
