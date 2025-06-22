@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 
 export const useBudgets = (user) => {
@@ -7,7 +7,7 @@ export const useBudgets = (user) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const calculateBudgetProgress = (budget, category) => {
+  const calculateBudgetProgress = useCallback((budget, category) => {
     const spentAmount = category.total_spent || 0;
     const budgetAmount = budget.budget_amount || 0;
     
@@ -49,9 +49,9 @@ export const useBudgets = (user) => {
       alert_level: alertLevel,
       budget_type: budget.budget_type
     };
-  };
+  }, []);
 
-  const fetchBudgets = async () => {
+  const fetchBudgets = useCallback(async () => {
     if (!user) return;
     
     setIsLoading(true);
@@ -94,7 +94,7 @@ export const useBudgets = (user) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, calculateBudgetProgress]);
 
   const updateBudget = async (budgetId, budgetAmount) => {
     if (!user) return;
@@ -190,7 +190,7 @@ export const useBudgets = (user) => {
     if (user) {
       fetchBudgets();
     }
-  }, [user]);
+  }, [user, fetchBudgets]);
 
   return {
     budgets,

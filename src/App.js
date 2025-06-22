@@ -21,7 +21,6 @@ function App() {
     isLoading: categoriesLoading, 
     error: categoriesError, 
     addSpendingItem,
-    fetchSpendingItems,
     updateCategoryAmount,
     resetAllCategories 
   } = useCategories(user);

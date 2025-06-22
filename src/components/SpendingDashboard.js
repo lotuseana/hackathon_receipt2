@@ -100,29 +100,6 @@ function SpendingDashboard({
     );
   };
 
-  const getProgressBarColor = (alertLevel) => {
-    switch (alertLevel) {
-      case 'critical':
-        return '#e74c3c';
-      case 'warning':
-        return '#f39c12';
-      case 'info':
-        return '#3498db';
-      default:
-        return '#27ae60';
-    }
-  };
-
-  const getProgressBarWidth = (progress) => {
-    return Math.min(progress, 100);
-  };
-
-  // Calculate spending progress for each category relative to total spending
-  const getCategorySpendingProgress = (categoryAmount) => {
-    if (grandTotal === 0) return 0;
-    return (categoryAmount / grandTotal) * 100;
-  };
-
   // Calculate budget progress for each category
   const getBudgetProgress = (categoryId) => {
     const budget = getBudgetForCategory(categoryId);
@@ -149,7 +126,6 @@ function SpendingDashboard({
           <ul>
             {categories.map((cat, index) => {
               const budget = getBudgetForCategory(cat.id);
-              const progress = getProgressForCategory(cat.id);
               const categoryAmount = cat.total_spent || 0;
               const budgetProgress = getBudgetProgress(cat.id);
               
