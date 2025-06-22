@@ -1,70 +1,101 @@
-# Getting Started with Create React App
+# Receipt Budget Assistant
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A smart, AI-powered web app to help you track spending, manage budgets, and get actionable insights from your receipts. Upload or photograph your receipts, and let Budgie (your mascot assistant) extract, categorize, and analyze your spending with the help of Google Cloud Vision, Anthropic AI, and Supabase.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Receipt OCR**: Upload images or take photos of receipts. Extracts text and itemizes purchases using Google Cloud Vision API.
+- **Manual Entry**: Add spending items manually if you don't have a receipt.
+- **Automatic Categorization**: Items are categorized for you, and you can adjust them as needed.
+- **Budget Management**: Set, update, and track budgets for each category. Visualize your progress.
+- **Spending Dashboard**: See your spending breakdown by category, with interactive charts and details.
+- **AI-Powered Insights**: Get personalized, actionable budgeting tips from Budgie, powered by Anthropic AI.
+- **Authentication**: Sign up or sign in with email/password or GitHub (via Supabase).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Getting Started
 
-### `npm test`
+### 1. Clone the repository
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```bash
+git clone https://github.com/yourusername/receipt-budget-app.git
+cd receipt-budget-app
+```
 
-### `npm run build`
+### 2. Install dependencies
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```bash
+npm install
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 3. Set up environment variables
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Create a `.env` file in the root directory with the following variables:
 
-### `npm run eject`
+```env
+# Google Cloud Vision API Key
+REACT_APP_GOOGLE_CLOUD_VISION_API_KEY=your_google_cloud_vision_api_key_here
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+# Anthropic API Key (for AI analysis)
+REACT_APP_ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+# Supabase Configuration
+REACT_APP_SUPABASE_URL=your_supabase_url_here
+REACT_APP_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+See [SETUP.md](SETUP.md) for detailed instructions on obtaining these keys.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 4. Start the development server
 
-## Learn More
+```bash
+npm start
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
+## Usage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. **Sign up or sign in** (email/password or GitHub).
+2. **Upload a receipt image** or take a photo. The app will extract and categorize items.
+3. **Review and adjust** the extracted data as needed.
+4. **Set budgets** for your categories and track your progress.
+5. **View your dashboard** for a breakdown of spending and budgets.
+6. **Get AI-powered tips** from Budgie to help you save and spend smarter.
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Tech Stack
 
-### Making a Progressive Web App
+- React
+- Supabase (auth & database)
+- Google Cloud Vision API (OCR)
+- Anthropic AI (Claude)
+- Chart.js (visualizations)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## Security Notes
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- **Never commit your `.env` file** to version control.
+- Restrict your API keys to specific domains/IPs when possible.
+- Monitor your API usage to avoid unexpected charges.
 
-### Deployment
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Troubleshooting
 
-### `npm run build` fails to minify
+- See [SETUP.md](SETUP.md) for common issues and solutions.
+- Check your environment variables and API key permissions.
+- Review the browser console for errors.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+---
+
+## License
+
+MIT
