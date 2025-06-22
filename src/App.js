@@ -5,6 +5,7 @@ import CameraCapture from './CameraCapture';
 import PieChart from './PieChart';
 import ManualEntry from './ManualEntry';
 import SpendingTips from './SpendingTips';
+import Auth from './Auth';
 import './App.css';
 
 const categoryColors = [
@@ -24,6 +25,7 @@ const anthropic = new Anthropic({
 });
 
 function App() {
+  const [user, setUser] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrText, setOcrText] = useState(null);
@@ -41,8 +43,27 @@ function App() {
   const [tipsGeneratedInitially, setTipsGeneratedInitially] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchCategories();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!selectedFile) {
@@ -55,23 +76,45 @@ function App() {
   }, [selectedFile]);
 
   const fetchCategories = async () => {
-    const { data, error } = await supabase.from('categories').select('*').order('name');
+    if (!user) return;
+    
+    const { data, error } = await supabase 
+      .from('categories') 
+      .select('*') 
+      .eq('user_id', user.id)
+      .order('name');
+    
     if (error) {
       setError("Could not fetch categories from the database.");
       console.error(error);
     } else {
-      setCategories(data);
+      setCategories(data || []);
     }
     setIsLoading(false);
   };
 
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setError("Error signing out");
+    } else {
+      setCategories([]);
+      setSpendingTips([]);
+      setSelectedFile(null);
+      setOcrText(null);
+      setStructuredData(null);
+    }
+  };
+
   const handleReset = async () => {
+    if (!user) return;
+    
     setIsResetting(true);
     setError(null);
     const { error } = await supabase
       .from('categories')
       .update({ total_spent: 0 })
-      .gt('id', 0);
+      .eq('user_id', user.id);
 
     if (error) {
       setError("Could not reset category totals.");
@@ -117,6 +160,8 @@ function App() {
   };
 
   const handleAddManualEntry = async ({ category: categoryName, total: amount }) => {
+    if (!user) return;
+    
     setIsSubmitting(true);
     setError(null);
     try {
@@ -131,6 +176,7 @@ function App() {
       const { data: categoryData, error: fetchError } = await supabase
         .from('categories')
         .select('id, total_spent')
+        .eq('user_id', user.id)
         .ilike('name', categoryName)
         .single();
 
@@ -163,7 +209,7 @@ function App() {
   };
 
   const handleRecognize = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !user) return;
 
     setIsExtracting(true);
     setOcrText(null);
@@ -218,6 +264,7 @@ function App() {
         const { data: categoryData, error: fetchError } = await supabase
           .from('categories')
           .select('id, total_spent')
+          .eq('user_id', user.id)
           .ilike('name', categoryName)
           .single();
 
@@ -254,6 +301,8 @@ function App() {
   };
 
   const handleGenerateTips = async () => {
+    if (!user) return;
+    
     setIsTipsLoading(true);
     setTipsError(null);
     setSpendingTips([]);
@@ -314,10 +363,20 @@ function App() {
     return <div className="loading-container">Loading...</div>;
   }
 
+  if (!user) {
+    return <Auth />;
+  }
+
   return (
     <div className="App">
        <div className="top-bar">
         <h1>Receipt Budget Assistant</h1>
+        <div className="user-info">
+          <span>Welcome, {user.email}</span>
+          <button onClick={handleSignOut} className="sign-out-button">
+            Sign Out
+          </button>
+        </div>
       </div>
       <div className="content-row">
         <div className="main-card">
