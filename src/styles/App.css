@@ -637,6 +637,126 @@ h1 {
   font-weight: 700;
 }
 
+.amount-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  opacity: 0.7;
+}
+
+.edit-button:hover {
+  background-color: #EAEFEF;
+  opacity: 1;
+}
+
+.edit-amount-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.current-amount-display {
+  margin-right: 8px;
+}
+
+.current-label {
+  font-size: 12px;
+  color: #7F8CAA;
+  font-weight: 500;
+}
+
+.adjustment-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adjustment-label {
+  font-size: 11px;
+  color: #333446;
+  font-weight: 500;
+  text-align: center;
+}
+
+.edit-amount-input {
+  width: 80px;
+  padding: 6px 8px;
+  border: 1px solid #B8CFCE;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.edit-amount-input:focus {
+  outline: none;
+  border-color: #7F8CAA;
+  box-shadow: 0 0 0 2px rgba(127, 140, 170, 0.2);
+}
+
+.edit-amount-input::placeholder {
+  color: #B8CFCE;
+  font-style: italic;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.save-button {
+  padding: 4px 8px;
+  background-color: #42b72a;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.save-button:hover:not(:disabled) {
+  background-color: #36a420;
+}
+
+.save-button:disabled {
+  background-color: #B8CFCE;
+  cursor: not-allowed;
+}
+
+.cancel-edit-button {
+  padding: 4px 8px;
+  background-color: #7F8CAA;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.cancel-edit-button:hover:not(:disabled) {
+  background-color: #B8CFCE;
+  color: #333446;
+}
+
+.cancel-edit-button:disabled {
+  background-color: #B8CFCE;
+  cursor: not-allowed;
+}
+
 .camera-actions {
   display: flex;
   justify-content: center;

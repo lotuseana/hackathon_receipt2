@@ -16,6 +16,7 @@ function App() {
     isLoading: categoriesLoading, 
     error: categoriesError, 
     updateCategoryTotal, 
+    updateCategoryAmount,
     resetAllCategories 
   } = useCategories(user);
   
@@ -170,6 +171,7 @@ function App() {
           categories={categories}
           isResetting={categoriesLoading}
           onReset={resetAllCategories}
+          onUpdateCategory={updateCategoryAmount}
         />
         
         <SpendingTips 

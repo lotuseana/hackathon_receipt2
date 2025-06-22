@@ -57,6 +57,28 @@ export const useCategories = (user) => {
     await fetchCategories();
   };
 
+  const updateCategoryAmount = async (categoryId, newAmount) => {
+    if (!user) return;
+    
+    setError(null);
+    
+    if (isNaN(newAmount) || newAmount < 0) {
+      throw new Error(`Invalid amount: ${newAmount}`);
+    }
+
+    const { error: updateError } = await supabase
+      .from('categories')
+      .update({ total_spent: newAmount })
+      .eq('id', categoryId)
+      .eq('user_id', user.id);
+
+    if (updateError) {
+      throw new Error(`Could not update category amount: ${updateError.message}`);
+    }
+    
+    await fetchCategories();
+  };
+
   const resetAllCategories = async () => {
     if (!user) return;
     
@@ -88,6 +110,7 @@ export const useCategories = (user) => {
     isLoading,
     error,
     updateCategoryTotal,
+    updateCategoryAmount,
     resetAllCategories,
     fetchCategories
   };
