@@ -95,25 +95,33 @@ export const useCategories = (user) => {
     return data;
   };
 
-  const updateCategoryAmount = async (categoryId, newAmount) => {
+  const updateCategoryAmount = async (categoryId, newAmount, adjustment = null) => {
     if (!user) return;
-    
     setError(null);
-    
     if (isNaN(newAmount) || newAmount < 0) {
       throw new Error(`Invalid amount: ${newAmount}`);
     }
-
+    // If adjustment is provided, log it as a spending item
+    if (adjustment && adjustment !== 0) {
+      // Find the category name for logging
+      const category = categories.find(cat => cat.id === categoryId);
+      if (category) {
+        await supabase.from('spending_items').insert({
+          user_id: user.id,
+          category_id: categoryId,
+          item_name: 'Adjustment',
+          amount: adjustment,
+        });
+      }
+    }
     const { error: updateError } = await supabase
       .from('categories')
       .update({ total_spent: newAmount })
       .eq('id', categoryId)
       .eq('user_id', user.id);
-
     if (updateError) {
       throw new Error(`Could not update category amount: ${updateError.message}`);
     }
-    
     await fetchCategories();
   };
 

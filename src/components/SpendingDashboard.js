@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import PieChart from './charts/PieChart';
 
 const categoryColors = [
@@ -11,6 +11,24 @@ const categoryColors = [
   '#D8EAD3', // Soft Pastel Green
   '#F7E6A9'  // Muted Budgie Yellow
 ];
+
+// Modal component for popup
+function Modal({ isOpen, onClose, children }) {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose} tabIndex={-1}>
+      <div
+        className="modal-content"
+        onClick={e => e.stopPropagation()}
+        tabIndex={0}
+        role="dialog"
+        aria-modal="true"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
 
 function SpendingDashboard({ 
   categories, 
@@ -29,6 +47,10 @@ function SpendingDashboard({
   const [spendingItems, setSpendingItems] = useState([]);
   const [isItemsLoading, setIsItemsLoading] = useState(false);
   const [skipResetAnimation, setSkipResetAnimation] = useState(false);
+  const [popupPosition, setPopupPosition] = useState(null); // {top, left}
+  const [pendingPopupRect, setPendingPopupRect] = useState(null); // for post-measurement adjustment
+  const popupRef = useRef(null);
+  const [adjustmentType, setAdjustmentType] = useState('add'); // 'add' or 'subtract'
 
   const grandTotal = categories.reduce((total, category) => total + (category.total_spent || 0), 0);
 
@@ -62,29 +84,51 @@ function SpendingDashboard({
     }
   };
 
-  const handleEditClick = (category) => {
+  const handleEditClick = (category, event) => {
     setEditingId(category.id);
-    setEditValue(''); // Start with empty input for adjustment
+    setEditValue('');
     setUpdateError(null);
+    setAdjustmentType('add');
+    if (event && event.target) {
+      const rect = event.target.getBoundingClientRect();
+      setPendingPopupRect({
+        top: rect.bottom + window.scrollY + 6,
+        right: rect.right + window.scrollX - 6, // use right edge for leftward popup
+      });
+    } else {
+      setPendingPopupRect(null);
+    }
   };
+
+  useEffect(() => {
+    if (pendingPopupRect && editingId && popupRef.current) {
+      const popupWidth = popupRef.current.offsetWidth;
+      let left = pendingPopupRect.right - popupWidth;
+      // Prevent overflow off the left edge
+      if (left < 8) left = 8;
+      setPopupPosition({
+        top: pendingPopupRect.top,
+        left,
+      });
+      setPendingPopupRect(null);
+    }
+  }, [pendingPopupRect, editingId]);
 
   const handleSave = async (categoryId) => {
     if (!onUpdateCategory) return;
-    
     setIsUpdating(true);
     setUpdateError(null);
-    
     try {
-      const adjustment = parseFloat(editValue) || 0;
+      let adjustment = parseFloat(editValue) || 0;
+      if (adjustment < 0) adjustment = Math.abs(adjustment);
+      if (adjustmentType === 'subtract') adjustment = -adjustment;
       const currentCategory = categories.find(cat => cat.id === categoryId);
       const currentAmount = currentCategory ? currentCategory.total_spent || 0 : 0;
       const newAmount = currentAmount + adjustment;
-      
       if (newAmount < 0) {
         throw new Error("Adjustment would result in negative amount");
       }
-      
-      await onUpdateCategory(categoryId, newAmount);
+      await onUpdateCategory(categoryId, newAmount, adjustment);
       setEditingId(null);
       setEditValue('');
     } catch (err) {
@@ -98,6 +142,8 @@ function SpendingDashboard({
     setEditingId(null);
     setEditValue('');
     setUpdateError(null);
+    setPopupPosition(null);
+    setPendingPopupRect(null);
   };
 
   const handleKeyPress = (e, categoryId) => {
@@ -125,6 +171,63 @@ function SpendingDashboard({
     if (!budget || !progress) return 0;
     return Math.min(progress.progress_percentage, 100);
   };
+
+  // Inline popup component
+  function InlinePopup({ isOpen, position, pendingRect, onClose, children }) {
+    // If position is not set but pendingRect is, use fallback width
+    let style = {};
+    if (position) {
+      style = {
+        position: 'absolute',
+        top: position.top,
+        left: position.left,
+        zIndex: 1001,
+        minWidth: 260,
+        maxWidth: '90vw',
+      };
+    } else if (pendingRect) {
+      // Fallback: use minWidth (260px) for initial render
+      let left = pendingRect.right - 260;
+      if (left < 8) left = 8;
+      style = {
+        position: 'absolute',
+        top: pendingRect.top,
+        left,
+        zIndex: 1001,
+        minWidth: 260,
+        maxWidth: '90vw',
+      };
+    } else {
+      return null;
+    }
+    return (
+      <div>
+        <div
+          className="popup-backdrop"
+          onClick={onClose}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 1000,
+            background: 'transparent',
+          }}
+        />
+        <div
+          className="inline-popup-content"
+          ref={popupRef}
+          style={style}
+          tabIndex={0}
+          role="dialog"
+          aria-modal="true"
+        >
+          {children}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="spending-breakdown-card">
@@ -163,54 +266,17 @@ function SpendingDashboard({
                       <span>{cat.name}</span>
                     </div>
                     
-                    {editingId === cat.id ? (
-                      <div className="edit-amount-container">
-                        <div className="current-amount-display">
-                          <span className="current-label">Current: ${categoryAmount.toFixed(2)}</span>
-                        </div>
-                        <div className="adjustment-input-group">
-                          <label className="adjustment-label">Adjustment (+/-):</label>
-                          <input
-                            type="number"
-                            value={editValue}
-                            onChange={(e) => setEditValue(e.target.value)}
-                            onKeyDown={(e) => handleKeyPress(e, cat.id)}
-                            step="0.01"
-                            className="edit-amount-input"
-                            disabled={isUpdating}
-                            autoFocus
-                            placeholder="0.00"
-                          />
-                        </div>
-                        <div className="edit-buttons">
-                          <button
-                            onClick={() => handleSave(cat.id)}
-                            disabled={isUpdating}
-                            className="save-button"
-                          >
-                            {isUpdating ? 'Saving...' : 'Apply'}
-                          </button>
-                          <button
-                            onClick={handleCancel}
-                            disabled={isUpdating}
-                            className="cancel-edit-button"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="amount-display">
-                        <strong>${categoryAmount.toFixed(2)}</strong>
-                        <button
-                          onClick={() => handleEditClick(cat)}
-                          className="edit-button"
-                          title="Edit amount"
-                        >
-                          ✏️
-                        </button>
-                      </div>
-                    )}
+                    <div className="amount-display">
+                      <strong>${categoryAmount.toFixed(2)}</strong>
+                      <button
+                        onClick={e => handleEditClick(cat, e)}
+                        className="edit-button"
+                        title="Edit amount"
+                        type="button"
+                      >
+                        ✏️
+                      </button>
+                    </div>
                   </div>
 
                   {/* Budget Progress Bar - Always visible, shows budget progress */}
@@ -272,6 +338,103 @@ function SpendingDashboard({
           )}
         </div>
       </div>
+      {/* Inline popup for category adjustment */}
+      <InlinePopup isOpen={!!editingId} position={popupPosition} pendingRect={pendingPopupRect} onClose={handleCancel}>
+        {editingId && (() => {
+          const cat = categories.find(c => c.id === editingId);
+          if (!cat) return null;
+          const categoryAmount = cat.total_spent || 0;
+          return (
+            <div className="edit-amount-modal-container">
+              <h3>Adjust {cat.name} Spending</h3>
+              <div className="current-amount-display">
+                <span className="current-label">Current: ${categoryAmount.toFixed(2)}</span>
+              </div>
+              <div className="adjustment-input-group">
+                <label className="adjustment-label">Adjustment:</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <button
+                    type="button"
+                    className={`adjustment-type-toggle${adjustmentType === 'add' ? ' active' : ''}`}
+                    onClick={() => setAdjustmentType('add')}
+                    disabled={isUpdating}
+                    aria-pressed={adjustmentType === 'add'}
+                    style={{
+                      background: adjustmentType === 'add' ? '#4CAF50' : '#ECEFF1',
+                      color: adjustmentType === 'add' ? '#fff' : '#333446',
+                      border: 'none',
+                      borderRadius: '6px 0 0 6px',
+                      padding: '8px 14px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      outline: 'none',
+                      fontSize: '1.1rem',
+                      transition: 'background 0.2s',
+                    }}
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    className={`adjustment-type-toggle${adjustmentType === 'subtract' ? ' active' : ''}`}
+                    onClick={() => setAdjustmentType('subtract')}
+                    disabled={isUpdating}
+                    aria-pressed={adjustmentType === 'subtract'}
+                    style={{
+                      background: adjustmentType === 'subtract' ? '#e74c3c' : '#ECEFF1',
+                      color: adjustmentType === 'subtract' ? '#fff' : '#333446',
+                      border: 'none',
+                      borderRadius: '0 6px 6px 0',
+                      padding: '8px 14px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      outline: 'none',
+                      fontSize: '1.1rem',
+                      transition: 'background 0.2s',
+                    }}
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={(e) => handleKeyPress(e, cat.id)}
+                    step="0.01"
+                    className="edit-amount-input"
+                    disabled={isUpdating}
+                    autoFocus
+                    placeholder="0.00"
+                    style={{ width: 100, marginLeft: 4 }}
+                  />
+                </div>
+              </div>
+              <div className="edit-buttons">
+                <button
+                  onClick={() => handleSave(cat.id)}
+                  disabled={isUpdating}
+                  className="save-button"
+                >
+                  {isUpdating ? 'Saving...' : 'Apply'}
+                </button>
+                <button
+                  onClick={handleCancel}
+                  disabled={isUpdating}
+                  className="cancel-edit-button"
+                >
+                  Cancel
+                </button>
+              </div>
+              {updateError && (
+                <div className="error-message">
+                  <p>Error: {updateError}</p>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+      </InlinePopup>
     </div>
   );
 }

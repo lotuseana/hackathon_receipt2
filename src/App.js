@@ -103,7 +103,11 @@ function App() {
 
   const handleUpdateCategory = async (categoryId, newAmount) => {
     try {
-      await updateCategoryAmount(categoryId, newAmount);
+      // Find the current category amount
+      const category = categories.find(cat => cat.id === categoryId);
+      const currentAmount = category ? category.total_spent || 0 : 0;
+      const adjustment = newAmount - currentAmount;
+      await updateCategoryAmount(categoryId, newAmount, adjustment);
       // Refresh budgets to update progress
       await fetchBudgets();
     } catch (err) {
