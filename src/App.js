@@ -8,10 +8,11 @@ import Header from './components/Header';
 import ReceiptUpload from './components/ReceiptUpload';
 import SpendingDashboard from './components/SpendingDashboard';
 import BudgetManagement from './components/BudgetManagement';
-import SpendingTips from './components/tips/SpendingTips';
 import Auth from './components/auth/Auth';
 import SideMenu from './components/SideMenu';
+import Mascot from './components/Mascot';
 import './styles/App.css';
+import Anthropic from '@anthropic-ai/sdk';
 
 function App() {
   const { user, isLoading, signOut, isAuthenticated } = useAuth();
@@ -36,7 +37,20 @@ function App() {
     fetchBudgets
   } = useBudgets(user);
   
-  const { fetchSpendingItems: fetchItemsForCategory } = useSpendingItems(user);
+  const { fetchSpendingItems: fetchItemsForCategory, fetchAllSpendingItems } = useSpendingItems(user);
+
+  const handleReceiptProcessed = async (newReceiptItems) => {
+    setMascotLoading(true);
+    try {
+      const allEntries = await fetchAllSpendingItems();
+      const tip = await getSmartTip(allEntries, newReceiptItems);
+      setMascotTip(tip);
+    } catch (err) {
+      setMascotTip('Budgie could not fetch a tip this time.');
+    } finally {
+      setMascotLoading(false);
+    }
+  };
 
   const {
     selectedFile,
@@ -50,21 +64,27 @@ function App() {
     handleCancel,
     processReceipt,
     setError: setReceiptError
-  } = useReceiptProcessing(addSpendingItem, fetchBudgets, categories);
+  } = useReceiptProcessing(addSpendingItem, fetchBudgets, categories, handleReceiptProcessed);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [spendingTips, setSpendingTips] = useState([]);
-  const [isTipsLoading, setIsTipsLoading] = useState(false);
-  const [tipsError, setTipsError] = useState(null);
-  const [tipsGeneratedInitially, setTipsGeneratedInitially] = useState(false);
   const [dismissedAlerts, setDismissedAlerts] = useState([]);
   const [isBudgetMenuOpen, setBudgetMenuOpen] = useState(false);
+  const [mascotTip, setMascotTip] = useState('');
+  const [mascotLoading, setMascotLoading] = useState(false);
+
+  const smartTips = [
+    "Remember to review your subscriptions regularly!",
+    "Small savings add up over time. Keep it up!",
+    "Try setting a weekly spending goal for this category.",
+    "Budgie says: Don't forget to treat yourself, but stay mindful!",
+    "Track your spending trends to spot new saving opportunities.",
+    "A little adjustment today can mean big savings tomorrow!"
+  ];
 
   const handleSignOut = async () => {
     try {
       handleCancel();
       await signOut();
-      setSpendingTips([]);
       setDismissedAlerts([]);
       setBudgetMenuOpen(false);
     } catch (error) {
@@ -72,44 +92,71 @@ function App() {
     }
   };
 
+  const showMascotWithTip = () => {
+    const tip = smartTips[Math.floor(Math.random() * smartTips.length)];
+    setMascotTip(tip);
+  };
+
+  const getSmartTip = async (allEntries, newEntryOrEntries) => {
+    const anthropic = new Anthropic({
+      apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
+      dangerouslyAllowBrowser: true,
+    });
+    let prompt;
+    if (Array.isArray(newEntryOrEntries)) {
+      prompt = `You are Budgie, a friendly and smart budgeting assistant. Given the user's full spending history (as an array of entries) and the most recent receipt upload (as an array of new items), provide a short, actionable, and encouraging budgeting tip or insight. Focus on helping the user spend smarter, spot trends, or stay motivated. Do not repeat previous tips. Return only the tip, no extra text or formatting.\n\nAll Entries: ${JSON.stringify(allEntries)}\nNew Receipt Items: ${JSON.stringify(newEntryOrEntries)}`;
+    } else {
+      prompt = `You are Budgie, a friendly and smart budgeting assistant. Given the user's full spending history (as an array of entries) and the most recent new entry, provide a short, actionable, and encouraging budgeting tip or insight. Focus on helping the user spend smarter, spot trends, or stay motivated. Do not repeat previous tips. Return only the tip, no extra text or formatting.\n\nAll Entries: ${JSON.stringify(allEntries)}\nNew Entry: ${JSON.stringify(newEntryOrEntries)}`;
+    }
+    const msg = await anthropic.messages.create({
+      model: "claude-3-haiku-20240307",
+      max_tokens: 256,
+      messages: [{ role: "user", content: prompt }],
+    });
+    return msg.content[0].text.trim();
+  };
+
   const handleAddManualEntry = async ({ category: categoryName, total: amount, name: itemName }) => {
     if (!user) return;
-    
     setIsSubmitting(true);
+    setMascotLoading(true);
     try {
       if (!categoryName || !amount || !itemName) {
         throw new Error("Category, amount, and item name are required.");
       }
-
       if (isNaN(amount) || amount <= 0) {
         throw new Error(`Invalid amount: ${amount}`);
       }
-
       await addSpendingItem({ categoryName, amount, itemName });
-      
-      // Refresh budgets to update progress
       await fetchBudgets();
-
-      if (tipsGeneratedInitially) {
-        handleGenerateTips();
-      }
+      const allEntries = await fetchAllSpendingItems();
+      const newEntry = { item_name: itemName, amount, categoryName };
+      const tip = await getSmartTip(allEntries, newEntry);
+      setMascotTip(tip);
     } catch (err) {
       console.error(err);
       setReceiptError(err.message);
     } finally {
       setIsSubmitting(false);
+      setMascotLoading(false);
     }
   };
 
-  const handleUpdateCategory = async (categoryId, newAmount) => {
+  const handleUpdateCategory = async (categoryId, newAmount, adjustment) => {
     try {
-      // Find the current category amount
       const category = categories.find(cat => cat.id === categoryId);
       const currentAmount = category ? category.total_spent || 0 : 0;
-      const adjustment = newAmount - currentAmount;
-      await updateCategoryAmount(categoryId, newAmount, adjustment);
-      // Refresh budgets to update progress
+      const adj = adjustment !== undefined ? adjustment : newAmount - currentAmount;
+      await updateCategoryAmount(categoryId, newAmount, adj);
       await fetchBudgets();
+      if (adj !== 0) {
+        setMascotLoading(true);
+        const allEntries = await fetchAllSpendingItems();
+        const newEntry = { item_name: 'Adjustment', amount: adj, categoryName: category?.name };
+        const tip = await getSmartTip(allEntries, newEntry);
+        setMascotTip(tip);
+        setMascotLoading(false);
+      }
     } catch (err) {
       console.error(err);
       throw err;
@@ -124,69 +171,6 @@ function App() {
     } catch (err) {
       console.error(err);
       throw err;
-    }
-  };
-
-  const handleGenerateTips = async () => {
-    if (!user) return;
-    
-    setIsTipsLoading(true);
-    setTipsError(null);
-    setSpendingTips([]);
-
-    try {
-      const relevantCategories = categories.filter(cat => (cat.total_spent || 0) > 0);
-
-      if (relevantCategories.length === 0) {
-        setTipsError("You don't have any spending data to analyze yet!");
-        return;
-      }
-
-      const prompt = `
-        You are a friendly and helpful financial assistant. Based on the following spending data (in JSON format), provide 2-3 short, actionable, and non-judgmental tips to help the user spend smarter. Focus on the categories with the highest spending, but be encouraging. Please return ONLY a valid JSON array of strings, like ["Tip one...", "Tip two..."]. Do not include any other text, markdown formatting, or explanations.
-
-        Spending Data:
-        ${JSON.stringify(relevantCategories)}
-      `;
-      
-      const { Anthropic } = await import('@anthropic-ai/sdk');
-      const anthropic = new Anthropic({
-        apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
-        dangerouslyAllowBrowser: true,
-      });
-      
-      const msg = await anthropic.messages.create({
-        model: "claude-3-haiku-20240307",
-        max_tokens: 1024,
-        messages: [{ role: "user", content: prompt }],
-      });
-
-      let responseText = msg.content[0].text;
-      let tipsData;
-
-      try {
-        tipsData = JSON.parse(responseText);
-      } catch (parseError) {
-        const jsonMatch = responseText.match(/\\[[\\s\\S]*\\]/);
-        if (jsonMatch) {
-          tipsData = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("The AI's response was not in the expected format.");
-        }
-      }
-
-      if (!Array.isArray(tipsData)) {
-          throw new Error("The AI's response was not a valid array of tips.");
-      }
-      
-      setSpendingTips(tipsData);
-      setTipsGeneratedInitially(true);
-
-    } catch (err) {
-      console.error("Error generating spending tips:", err);
-      setTipsError("Sorry, I couldn't generate tips at the moment. Please try again.");
-    } finally {
-      setIsTipsLoading(false);
     }
   };
 
@@ -255,15 +239,6 @@ function App() {
         />
       </div>
 
-      <div className="tips-row">
-        <SpendingTips 
-          tips={spendingTips}
-          onGenerate={handleGenerateTips}
-          isLoading={isTipsLoading}
-          error={tipsError}
-        />
-      </div>
-
       <SideMenu isOpen={isBudgetMenuOpen} onClose={() => setBudgetMenuOpen(false)}>
         <BudgetManagement
           categories={sortedCategories}
@@ -275,6 +250,8 @@ function App() {
           isLoading={budgetsLoading}
         />
       </SideMenu>
+
+      <Mascot tip={mascotLoading ? 'Budgie is thinking...' : mascotTip} visible={true} />
     </div>
   );
 }

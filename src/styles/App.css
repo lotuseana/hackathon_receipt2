@@ -14,7 +14,7 @@ body {
   margin: 0;
   padding: 10px;
   min-height: 100vh;
-  background-image: url('data:image/svg+xml;utf8,<svg width="120" height="60" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="60" cy="30" rx="60" ry="30" fill="%23FFE082" fill-opacity="0.22"/></svg>');
+  background-image: url('data:image/svg+xml;utf8,<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="16" fill="%23FFE082" fill-opacity="0.22"/></svg>');
   background-repeat: repeat;
 }
 
@@ -1567,12 +1567,13 @@ h1 {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
-  z-index: 100;
+  z-index: 2001;
 }
 
 .side-menu-overlay.open {
   opacity: 1;
   visibility: visible;
+  z-index: 2001;
 }
 
 .side-menu {
@@ -1585,13 +1586,14 @@ h1 {
   background-color: white;
   box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
   transition: right 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  z-index: 101;
+  z-index: 2001;
   display: flex;
   flex-direction: column;
 }
 
 .side-menu.open {
   right: 0;
+  z-index: 2001;
 }
 
 .side-menu-header {
@@ -1861,4 +1863,14 @@ h1 {
     width: 100% !important;
     font-size: 0.95rem;
   }
+}
+
+/* Hide number input spinners for budget editing */
+.edit-budget-input--no-spinner::-webkit-outer-spin-button,
+.edit-budget-input--no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.edit-budget-input--no-spinner {
+  -moz-appearance: textfield;
 }

@@ -11,7 +11,7 @@ export function useSpendingItems(user) {
       setError(null);
       const { data, error: fetchError } = await supabase
         .from('spending_items')
-        .select('id, item_name, amount, created_at')
+        .select('id, item_name, amount, created_at, category_id')
         .eq('user_id', user.id)
         .eq('category_id', categoryId)
         .order('created_at', { ascending: false });
@@ -28,5 +28,26 @@ export function useSpendingItems(user) {
     }
   }, [user]);
 
-  return { fetchSpendingItems, error };
+  // Fetch all spending items for the user
+  const fetchAllSpendingItems = useCallback(async () => {
+    if (!user) return [];
+    try {
+      setError(null);
+      const { data, error: fetchError } = await supabase
+        .from('spending_items')
+        .select('id, item_name, amount, created_at, category_id')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+      if (fetchError) {
+        throw fetchError;
+      }
+      return data || [];
+    } catch (err) {
+      console.error('Error fetching all spending items:', err);
+      setError(err.message);
+      return [];
+    }
+  }, [user]);
+
+  return { fetchSpendingItems, fetchAllSpendingItems, error };
 } 

@@ -26,7 +26,7 @@ export const useBudgets = (user) => {
     }
     
     const progressPercentage = (spentAmount / budgetAmount) * 100;
-    const remainingAmount = Math.max(budgetAmount - spentAmount, 0);
+    const remainingAmount = budgetAmount - spentAmount;
     const isOverBudget = spentAmount > budgetAmount;
     
     let alertLevel = 'safe';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 function BudgetManagement({ 
   categories, 
@@ -11,6 +11,7 @@ function BudgetManagement({
 }) {
   const [editingBudget, setEditingBudget] = useState(null);
   const [editAmount, setEditAmount] = useState('');
+  const editAmountRef = useRef(null);
   
   const [creatingForCategory, setCreatingForCategory] = useState(null);
   const [newAmount, setNewAmount] = useState('');
@@ -22,6 +23,39 @@ function BudgetManagement({
     setEditingBudget(budget);
     setEditAmount(budget.budget_amount.toString());
     setError(null);
+    setTimeout(() => {
+      if (editAmountRef.current) {
+        const el = editAmountRef.current;
+        el.focus();
+        // Place caret at the end
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+    }, 0);
+  };
+
+  const handleEditAmountChange = (e) => {
+    // Only update state, do not sanitize or reset innerText here
+    setEditAmount(e.target.innerText);
+  };
+
+  const handleEditAmountKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+
+  const handleEditAmountBlur = () => {
+    // Sanitize the value before saving
+    setEditAmount((prev) => prev.replace(/[^\d.]/g, ''));
+    handleSave();
   };
 
   const handleSave = async () => {
@@ -120,8 +154,6 @@ function BudgetManagement({
 
   return (
     <div className="budget-management-card">
-      <h2>Smart Budget Tracking</h2>
-      
       {error && (
         <div className="error-message">
           <p>{error}</p>
@@ -147,58 +179,68 @@ function BudgetManagement({
               {budget ? (
                 <div className="budget-info">
                   <div className="budget-details">
-                    <span className="budget-amount">
-                      ${budget.budget_amount.toFixed(2)} monthly
-                    </span>
                     {editingBudget?.id === budget.id ? (
-                      <div className="edit-budget-form">
+                      <span>
                         <input
+                          ref={editAmountRef}
                           type="number"
                           value={editAmount}
-                          onChange={(e) => setEditAmount(e.target.value)}
+                          onChange={e => setEditAmount(e.target.value)}
+                          onKeyDown={handleEditAmountKeyDown}
+                          onBlur={handleEditAmountBlur}
+                          className="edit-budget-input edit-budget-input--no-spinner"
+                          style={{
+                            minWidth: '10px',
+                            maxWidth: '60px',
+                            display: 'inline-block',
+                            outline: 'none',
+                            border: 'none',
+                            borderBottom: '1.5px dotted #2980b9',
+                            borderRadius: 0,
+                            background: '#eaf6ff',
+                            padding: '2px 0',
+                            fontSize: 'inherit',
+                            fontWeight: 700,
+                            fontFamily: 'inherit',
+                            color: '#2980b9',
+                            appearance: 'textfield',
+                            MozAppearance: 'textfield',
+                            WebkitAppearance: 'none',
+                          }}
+                          disabled={isUpdating}
+                          autoFocus
                           step="0.01"
                           min="0"
-                          className="edit-budget-input"
-                          disabled={isUpdating}
                         />
-                        <button
-                          onClick={handleSave}
-                          disabled={isUpdating}
-                          className="save-budget-button"
-                        >
-                          {isUpdating ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                          onClick={handleCancel}
-                          disabled={isUpdating}
-                          className="cancel-budget-button"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                        <span style={{ color: 'inherit', textDecoration: 'none', marginLeft: 8 }}>
+                          monthly
+                        </span>
+                      </span>
                     ) : (
-                      <div className="budget-actions">
-                        <button
+                      <span>
+                        <span
+                          className="budget-amount"
+                          style={{ cursor: 'pointer', textDecoration: 'underline dotted', color: '#2980b9' }}
+                          title="Click to edit budget"
                           onClick={() => handleEditClick(budget)}
-                          className="edit-budget-button"
-                          title="Edit budget"
+                          onMouseOver={e => { e.target.style.background = '#f0f8ff'; }}
+                          onMouseOut={e => { e.target.style.background = 'none'; }}
                         >
-                          ✏️
-                        </button>
-                        <button
-                          onClick={() => onDeleteBudget(budget.id)}
-                          className="delete-budget-button"
-                          title="Delete budget"
-                        >
-                          🗑️
-                        </button>
-                      </div>
+                          ${budget.budget_amount.toFixed(2)}
+                        </span>
+                        <span style={{ color: 'inherit', textDecoration: 'none', marginLeft: 8 }}>
+                          monthly
+                        </span>
+                      </span>
                     )}
                   </div>
                   
                   {progress && (
                     <div className="budget-progress">
-                      <div className="progress-bar-container">
+                      <div className="progress-bar-container" style={{
+                        border: progress.is_over_budget ? '2px solid #e74c3c' : undefined,
+                        borderRadius: '8px',
+                      }}>
                         <div 
                           className="progress-bar"
                           style={{
@@ -209,11 +251,18 @@ function BudgetManagement({
                       </div>
                       <div className="progress-info">
                         <span className="progress-percentage">
-                          {progress.progress_percentage.toFixed(1)}%
+                          {progress.progress_percentage.toFixed(1)}% used
                         </span>
-                        <span className="progress-message">
-                          {getAlertMessage(progress)}
-                        </span>
+                        {progress.is_over_budget ? (
+                          <span className="progress-amount-remaining over-budget" style={{ marginLeft: '12px', color: '#e74c3c', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+                            <span style={{ fontSize: '1.2em', marginRight: 4 }} title="Over budget">⚠️</span>
+                            ${Math.abs(progress.remaining_amount).toFixed(2)} over budget.
+                          </span>
+                        ) : (
+                          <span className="progress-amount-remaining" style={{ marginLeft: '12px' }}>
+                            ${progress.remaining_amount.toFixed(2)} remaining in your budget.
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}

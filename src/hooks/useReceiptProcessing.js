@@ -17,7 +17,7 @@ const googleCloudVisionApiKey = process.env.REACT_APP_GOOGLE_CLOUD_VISION_API_KE
 // Initialize Google Cloud Vision service
 const googleCloudVision = new GoogleCloudVisionService(googleCloudVisionApiKey);
 
-export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, categories = []) => {
+export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, categories = [], onReceiptProcessed) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [ocrText, setOcrText] = useState(null);
@@ -126,6 +126,7 @@ ${text}`
       }
       setStructuredData(jsonData);
 
+      let newReceiptItems = [];
       // Step 3: Update Database with itemized spending
       if (jsonData.items && Array.isArray(jsonData.items)) {
         for (const item of jsonData.items) {
@@ -143,7 +144,13 @@ ${text}`
               amount,
               itemName: item.description || 'Scanned Item'
             });
+            newReceiptItems.push({ categoryName, amount, itemName: item.description || 'Scanned Item' });
           }
+        }
+        
+        // Call the callback with all new items
+        if (onReceiptProcessed && newReceiptItems.length > 0) {
+          onReceiptProcessed(newReceiptItems);
         }
         
         // Refresh budgets if callback is provided
