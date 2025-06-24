@@ -12,23 +12,6 @@ const categoryColors = [
   '#F7E6A9'  // Muted Budgie Yellow
 ];
 
-// Modal component for popup
-function Modal({ isOpen, onClose, children }) {
-  if (!isOpen) return null;
-  return (
-    <div className="modal-overlay" onClick={onClose} tabIndex={-1}>
-      <div
-        className="modal-content"
-        onClick={e => e.stopPropagation()}
-        tabIndex={0}
-        role="dialog"
-        aria-modal="true"
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
 
 function SpendingDashboard({ 
   categories, 
@@ -52,7 +35,6 @@ function SpendingDashboard({
   const popupRef = useRef(null);
   const [adjustmentType, setAdjustmentType] = useState('add'); // 'add' or 'subtract'
 
-  const grandTotal = categories.reduce((total, category) => total + (category.total_spent || 0), 0);
 
   useEffect(() => {
     function handleBlur() {
@@ -164,13 +146,6 @@ function SpendingDashboard({
     );
   };
 
-  // Calculate budget progress for each category
-  const getBudgetProgress = (categoryId) => {
-    const budget = getBudgetForCategory(categoryId);
-    const progress = getProgressForCategory(categoryId);
-    if (!budget || !progress) return 0;
-    return Math.min(progress.progress_percentage, 100);
-  };
 
   // Inline popup component
   function InlinePopup({ isOpen, position, pendingRect, onClose, children }) {

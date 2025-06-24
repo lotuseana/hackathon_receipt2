@@ -21,8 +21,7 @@ function App() {
     error: categoriesError, 
     addSpendingItem,
     updateCategoryAmount,
-    resetAllCategories,
-    fetchCategories
+    resetAllCategories
   } = useCategories(user);
   
   const {
@@ -67,25 +66,14 @@ function App() {
   } = useReceiptProcessing(addSpendingItem, fetchBudgets, categories, handleReceiptProcessed);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dismissedAlerts, setDismissedAlerts] = useState([]);
   const [isBudgetMenuOpen, setBudgetMenuOpen] = useState(false);
   const [mascotTip, setMascotTip] = useState('');
   const [mascotLoading, setMascotLoading] = useState(false);
-
-  const smartTips = [
-    "Remember to review your subscriptions regularly!",
-    "Small savings add up over time. Keep it up!",
-    "Try setting a weekly spending goal for this category.",
-    "Budgie says: Don't forget to treat yourself, but stay mindful!",
-    "Track your spending trends to spot new saving opportunities.",
-    "A little adjustment today can mean big savings tomorrow!"
-  ];
 
   const handleSignOut = async () => {
     try {
       handleCancel();
       await signOut();
-      setDismissedAlerts([]);
       setBudgetMenuOpen(false);
     } catch (error) {
       console.error('Sign out error:', error);
