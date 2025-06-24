@@ -9,6 +9,15 @@ export default async function handler(req, res) {
   // Log the incoming prompt for debugging
   console.log('Received prompt:', req.body?.prompt);
 
+  // Build the correct payload for Anthropic Claude
+  const payload = {
+    model: 'claude-3-haiku-20240307',
+    max_tokens: 256,
+    messages: [
+      { role: 'user', content: req.body?.prompt || '' }
+    ]
+  };
+
   const response = await fetch(anthropicUrl, {
     method: 'POST',
     headers: {
@@ -16,7 +25,7 @@ export default async function handler(req, res) {
       'x-api-key': apiKey,
       'anthropic-version': '2023-06-01'
     },
-    body: JSON.stringify(req.body)
+    body: JSON.stringify(payload)
   });
 
   const data = await response.json();
