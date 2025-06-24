@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import './Mascot.css';
 
@@ -16,7 +16,9 @@ function getRandomIdleLine() {
 }
 
 const Mascot = ({ tip, visible }) => {
-  const displayText = tip || getRandomIdleLine();
+  // Only pick the idle line once per mount
+  const initialIdleLine = useRef(getRandomIdleLine());
+  const displayText = tip || initialIdleLine.current;
   return ReactDOM.createPortal(
     <div className="mascot-container">
       {displayText && (
