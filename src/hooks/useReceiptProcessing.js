@@ -136,7 +136,24 @@ export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, ca
           max_tokens: 2048, // Increased tokens for longer receipts
           messages: [{
             role: "user",
-            content: `From the following receipt text, extract the store name, the final total, and a list of all items. For each item, provide its description, price, and classify it into one of the available categories.\n\nPlease return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting.\n\nThe JSON object must have these keys: \"storeName\", \"total\", \"items\".\nThe \"items\" key must hold an array of objects, where each object has \"description\", \"price\", and \"category\" keys.\n- The \"description\" should be a short, clean name for the item.\n- The \"price\" must be a number (e.g., 12.99).\n- The \"category\" must be one of the provided category names.\n- Explicitly look for a \"Tax\" or \"Sales Tax\" line item and classify it under the \"Tax\" category.\n\nIf a value cannot be found, use null. For item categorization, use \"Other\" if no other category fits.\n\nAvailable Categories:\n\"${categoryNames}\"\n\nReceipt Text:\n${text}`
+            content: `From the following receipt text, extract the store name, the final total, and a list of all items. For each item, provide its description, price, and classify it into one of the available categories.
+
+Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting.
+
+The JSON object must have these keys: "storeName", "total", "items".
+The "items" key must hold an array of objects, where each object has "description", "price", and "category" keys.
+- The "description" should be a short, clean name for the item.
+- The "price" must be a number (e.g., 12.99).
+- The "category" must be one of the provided category names.
+- Explicitly look for a "Tax" or "Sales Tax" line item and classify it under the "Tax" category.
+
+If a value cannot be found, use null. For item categorization, use "Other" if no other category fits.
+
+Available Categories:
+"${categoryNames}"
+
+Receipt Text:
+${text}`
           }],
         })
       });
