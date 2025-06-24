@@ -7,6 +7,8 @@ export default async function handler(req, res) {
     const { imageBase64 } = req.body;
     const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY; // No REACT_APP_ prefix
 
+    console.log('Google Vision API key present:', !!apiKey);
+
     const response = await fetch(
       `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
       {

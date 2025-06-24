@@ -51,5 +51,6 @@ export default async function handler(req, res) {
       // Not JSON, keep as is
     }
   }
+  console.log('Anthropic API key present:', !!apiKey);
   res.status(response.status).json({ ...data, tip });
 }
