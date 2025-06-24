@@ -92,6 +92,8 @@ function App() {
       body: JSON.stringify({ prompt })
     });
     const data = await response.json();
+    console.log('Anthropic API response:', data);
+    console.log('Extracted tip:', data.tip);
     return data.tip || '';
   };
 

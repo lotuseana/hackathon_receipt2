@@ -6,6 +6,9 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY; // No REACT_APP_ prefix
   const anthropicUrl = 'https://api.anthropic.com/v1/messages';
 
+  // Log the incoming prompt for debugging
+  console.log('Received prompt:', req.body?.prompt);
+
   const response = await fetch(anthropicUrl, {
     method: 'POST',
     headers: {
@@ -17,6 +20,8 @@ export default async function handler(req, res) {
   });
 
   const data = await response.json();
+  // Log the Anthropic API response for debugging
+  console.log('Anthropic API raw response:', data);
   // Extract tip from the response (Anthropic Claude returns it in content[0].text)
   let tip = '';
   if (data && Array.isArray(data.content) && data.content.length > 0 && data.content[0].text) {
