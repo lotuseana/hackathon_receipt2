@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { useCategories } from './hooks/useCategories';
 import { useBudgets } from './hooks/useBudgets';
@@ -22,7 +22,8 @@ function App() {
     error: categoriesError, 
     addSpendingItem,
     updateCategoryAmount,
-    resetAllCategories 
+    resetAllCategories,
+    fetchCategories
   } = useCategories(user);
   
   const {
