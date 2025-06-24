@@ -188,4 +188,95 @@
   .auth-card h2 {
     font-size: 24px;
   }
+}
+
+/* Pastel background for auth page */
+.pastel-bg {
+  background: linear-gradient(135deg, #FFE082 0%, #B2F7EF 100%) !important;
+}
+
+/* Pastel card for auth */
+.pastel-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 6px 24px rgba(39, 174, 96, 0.08);
+  border: 1.5px solid #B2F7EF;
+  padding: 36px 32px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+/* Pastel button style */
+.pastel-btn {
+  background: linear-gradient(90deg, #ffef92 60%, #B2F7EF 100%);
+  color: #333446;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.07);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.pastel-btn:hover:not(:disabled) {
+  background: linear-gradient(90deg, #B2F7EF 60%, #ffef92 100%);
+  color: #229954;
+  box-shadow: 0 4px 16px rgba(39, 174, 96, 0.12);
+}
+
+/* Make sure the rest of the auth form is still visually consistent */
+.auth-card h2 {
+  color: #27ae60;
+  font-family: 'Baloo 2', cursive;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.auth-subtitle {
+  color: #7F8CAA;
+  font-size: 1.1rem;
+  margin-bottom: 28px;
+}
+.auth-form input {
+  border: 1.5px solid #B2F7EF;
+  border-radius: 8px;
+  font-size: 1rem;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  background: #f8f9fa;
+  color: #333446;
+  transition: border-color 0.2s;
+}
+.auth-form input:focus {
+  border-color: #27ae60;
+  outline: none;
+}
+.auth-button.pastel-btn:disabled {
+  background: #B8CFCE;
+  color: #7F8CAA;
+  cursor: not-allowed;
+}
+.divider span {
+  background: #fff;
+  color: #7F8CAA;
+}
+.github-button.pastel-btn {
+  background: #333446;
+  color: #fff;
+  font-weight: 600;
+}
+.github-button.pastel-btn:hover:not(:disabled) {
+  background: #7F8CAA;
+  color: #fff;
+}
+.switch-button {
+  color: #27ae60;
+  font-weight: 700;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: 4px;
+}
+.switch-button:hover {
+  color: #229954;
 } 

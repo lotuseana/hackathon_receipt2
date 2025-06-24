@@ -6,6 +6,7 @@ function Auth() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [retypePassword, setRetypePassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -16,6 +17,11 @@ function Auth() {
 
     try {
       if (isSignUp) {
+        if (password !== retypePassword) {
+          setMessage("Passwords do not match.");
+          setLoading(false);
+          return;
+        }
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -54,11 +60,10 @@ function Auth() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div className="auth-container pastel-bg">
+      <div className="auth-card pastel-card">
         <h2>{isSignUp ? 'Create Account' : 'Sign In'}</h2>
         <p className="auth-subtitle">Track your spending with personalized insights</p>
-        
         <form onSubmit={handleAuth} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -71,7 +76,6 @@ function Auth() {
               required
             />
           </div>
-          
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -83,19 +87,37 @@ function Auth() {
               required
             />
           </div>
-          
-          <button type="submit" className="auth-button" disabled={loading}>
-            {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+          {isSignUp && (
+            <div className="form-group">
+              <label htmlFor="retype-password">Retype Password</label>
+              <input
+                id="retype-password"
+                type="password"
+                value={retypePassword}
+                onChange={(e) => setRetypePassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+          )}
+          <button
+            type="submit"
+            className="auth-button pastel-btn"
+            disabled={loading || (isSignUp && password !== retypePassword)}
+          >
+            {loading
+              ? 'Loading...'
+              : isSignUp
+              ? 'Create Account'
+              : 'Sign In'}
           </button>
         </form>
-        
         <div className="divider">
           <span>or</span>
         </div>
-        
-        <button 
-          onClick={handleSignInWithGitHub} 
-          className="github-button"
+        <button
+          onClick={handleSignInWithGitHub}
+          className="github-button pastel-btn"
           disabled={loading}
         >
           <svg viewBox="0 0 24 24" className="github-icon">
@@ -103,17 +125,15 @@ function Auth() {
           </svg>
           Continue with GitHub
         </button>
-        
         {message && (
           <div className={`message ${message.includes('Check your email') ? 'success' : 'error'}`}>
             {message}
           </div>
         )}
-        
         <p className="auth-switch">
           {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setIsSignUp(!isSignUp)}
             className="switch-button"
           >
