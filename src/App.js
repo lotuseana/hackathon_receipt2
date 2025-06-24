@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from './hooks/useAuth';
 import { useCategories } from './hooks/useCategories';
 import { useBudgets } from './hooks/useBudgets';
@@ -12,7 +12,6 @@ import Auth from './components/auth/Auth';
 import SideMenu from './components/SideMenu';
 import Mascot from './components/Mascot';
 import './styles/App.css';
-import Anthropic from '@anthropic-ai/sdk';
 
 function App() {
   const { user, isLoading, signOut, isAuthenticated } = useAuth();
@@ -93,28 +92,20 @@ function App() {
     }
   };
 
-  const showMascotWithTip = () => {
-    const tip = smartTips[Math.floor(Math.random() * smartTips.length)];
-    setMascotTip(tip);
-  };
-
   const getSmartTip = async (allEntries, newEntryOrEntries) => {
-    const anthropic = new Anthropic({
-      apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
-      dangerouslyAllowBrowser: true,
-    });
     let prompt;
     if (Array.isArray(newEntryOrEntries)) {
       prompt = `You are Budgie, a friendly and smart budgeting assistant. Given the user's full spending history (as an array of entries) and the most recent receipt upload (as an array of new items), provide a short, actionable, and encouraging budgeting tip or insight. Focus on helping the user spend smarter, spot trends, or stay motivated. Do not repeat previous tips. Return only the tip, no extra text or formatting.\n\nAll Entries: ${JSON.stringify(allEntries)}\nNew Receipt Items: ${JSON.stringify(newEntryOrEntries)}`;
     } else {
       prompt = `You are Budgie, a friendly and smart budgeting assistant. Given the user's full spending history (as an array of entries) and the most recent new entry, provide a short, actionable, and encouraging budgeting tip or insight. Focus on helping the user spend smarter, spot trends, or stay motivated. Do not repeat previous tips. Return only the tip, no extra text or formatting.\n\nAll Entries: ${JSON.stringify(allEntries)}\nNew Entry: ${JSON.stringify(newEntryOrEntries)}`;
     }
-    const msg = await anthropic.messages.create({
-      model: "claude-3-haiku-20240307",
-      max_tokens: 256,
-      messages: [{ role: "user", content: prompt }],
+    const response = await fetch('/api/anthropic', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
     });
-    return msg.content[0].text.trim();
+    const data = await response.json();
+    return data.tip || data.result || data.content || '';
   };
 
   const handleAddManualEntry = async ({ category: categoryName, total: amount, name: itemName }) => {
@@ -174,14 +165,6 @@ function App() {
       throw err;
     }
   };
-
-  const handleDismissAlert = (alertIndex) => {
-    setDismissedAlerts(prev => [...prev, alertIndex]);
-  };
-
-  const activeBudgetAlerts = getBudgetAlerts().filter((_, index) => 
-    !dismissedAlerts.includes(index)
-  );
 
   // Helper: Get budget progress percentage for a category
   const getBudgetFilledPercentage = (categoryId) => {

@@ -1,21 +1,30 @@
 import { useState, useEffect } from 'react';
-import Anthropic from '@anthropic-ai/sdk';
-import { GoogleCloudVisionService } from '../services/googleCloudVision';
-
-const anthropic = new Anthropic({
-  apiKey: process.env.REACT_APP_ANTHROPIC_API_KEY,
-  dangerouslyAllowBrowser: true,
-});
 
 // Check if API key is available
-const googleCloudVisionApiKey = process.env.REACT_APP_GOOGLE_CLOUD_VISION_API_KEY;
+// const googleCloudVisionApiKey = process.env.REACT_APP_GOOGLE_CLOUD_VISION_API_KEY;
 // console.log('Google Cloud Vision API Key available:', !!googleCloudVisionApiKey);
 // if (googleCloudVisionApiKey) {
 //   console.log('API Key (first 10 chars):', googleCloudVisionApiKey.substring(0, 10) + '...');
 // }
 
-// Initialize Google Cloud Vision service
-const googleCloudVision = new GoogleCloudVisionService(googleCloudVisionApiKey);
+// Replace GoogleCloudVisionService usage with a function that calls /api/vision
+async function extractTextFromImageViaApi(imageFile) {
+  // Convert image file to base64
+  const base64Image = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(imageFile);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
+  const response = await fetch('/api/vision', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageBase64: base64Image })
+  });
+  const data = await response.json();
+  // Extract text from the response as needed
+  return data.responses?.[0]?.fullTextAnnotation?.text || '';
+}
 
 export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, categories = [], onReceiptProcessed) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -70,7 +79,7 @@ export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, ca
     
     try {
       // Step 1: OCR Processing using Google Cloud Vision API
-      const text = await googleCloudVision.extractTextFromImage(selectedFile);
+      const text = await extractTextFromImageViaApi(selectedFile);
       setOcrText(text);
 
       // Log the extracted text to the console
@@ -81,12 +90,15 @@ export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, ca
       const categoryNames = categories.map(c => c.name).join('", "');
 
       // Step 2: AI Analysis for itemization
-      const msg = await anthropic.messages.create({
-        model: "claude-3-haiku-20240307",
-        max_tokens: 2048, // Increased tokens for longer receipts
-        messages: [{
-          role: "user",
-          content: `From the following receipt text, extract the store name, the final total, and a list of all items. For each item, provide its description, price, and classify it into one of the available categories.
+      const msg = await fetch('/api/anthropic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: "claude-3-haiku-20240307",
+          max_tokens: 2048, // Increased tokens for longer receipts
+          messages: [{
+            role: "user",
+            content: `From the following receipt text, extract the store name, the final total, and a list of all items. For each item, provide its description, price, and classify it into one of the available categories.
 
 Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting.
 
@@ -104,10 +116,11 @@ Available Categories:
 
 Receipt Text:
 ${text}`
-        }],
+          }],
+        })
       });
       
-      let responseText = msg.content[0].text;
+      let responseText = await msg.text();
       let jsonData;
 
       try {

@@ -152,4 +152,21 @@ export class GoogleCloudVisionClientService {
     // const [result] = await this.client.textDetection(imageFile);
     // return result.fullTextAnnotation.text;
   }
+}
+
+// Remove all direct API key usage and replace with a function that calls /api/vision
+export async function extractTextFromImageViaApi(imageFile) {
+  const base64Image = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(imageFile);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = error => reject(error);
+  });
+  const response = await fetch('/api/vision', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageBase64: base64Image })
+  });
+  const data = await response.json();
+  return data.responses?.[0]?.fullTextAnnotation?.text || '';
 } 

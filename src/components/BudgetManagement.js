@@ -38,11 +38,6 @@ function BudgetManagement({
     }, 0);
   };
 
-  const handleEditAmountChange = (e) => {
-    // Only update state, do not sanitize or reset innerText here
-    setEditAmount(e.target.innerText);
-  };
-
   const handleEditAmountKeyDown = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -135,23 +130,6 @@ function BudgetManagement({
     return Math.min(progress, 100);
   };
 
-  const getAlertMessage = (progress) => {
-    if (progress.is_over_budget) {
-      return `You're ${Math.abs(progress.progress_percentage - 100).toFixed(1)}% over your budget!`;
-    }
-    
-    switch (progress.alert_level) {
-      case 'critical':
-        return `You're ${progress.progress_percentage.toFixed(1)}% through your budget!`;
-      case 'warning':
-        return `You're ${progress.progress_percentage.toFixed(1)}% through your budget.`;
-      case 'info':
-        return `You've used ${progress.progress_percentage.toFixed(1)}% of your budget.`;
-      default:
-        return `You have ${progress.remaining_amount.toFixed(2)} remaining in your budget.`;
-    }
-  };
-
   return (
     <div className="budget-management-card">
       {error && (
@@ -185,7 +163,7 @@ function BudgetManagement({
                           ref={editAmountRef}
                           type="number"
                           value={editAmount}
-                          onChange={e => setEditAmount(e.target.value)}
+                          onChange={(e) => setEditAmount(e.target.value)}
                           onKeyDown={handleEditAmountKeyDown}
                           onBlur={handleEditAmountBlur}
                           className="edit-budget-input edit-budget-input--no-spinner"
