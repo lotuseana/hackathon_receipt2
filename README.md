@@ -1,5 +1,7 @@
 # Receipt Budget Assistant
 
+[Live Demo on Vercel](https://hackathon-receipt.vercel.app/)
+
 A smart, AI-powered web app to help you track spending, manage budgets, and get actionable insights from your receipts. Upload or photograph your receipts, and let Budgie (your mascot assistant) extract, categorize, and analyze your spending with the help of Google Cloud Vision, Anthropic AI, and Supabase.
 
 ---
