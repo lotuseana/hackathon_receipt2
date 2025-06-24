@@ -92,7 +92,7 @@ function App() {
       body: JSON.stringify({ prompt })
     });
     const data = await response.json();
-    return data.tip || data.result || data.content || '';
+    return data.tip || '';
   };
 
   const handleAddManualEntry = async ({ category: categoryName, total: amount, name: itemName }) => {

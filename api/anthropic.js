@@ -17,5 +17,19 @@ export default async function handler(req, res) {
   });
 
   const data = await response.json();
-  res.status(response.status).json(data);
+  // Extract tip from the response (Anthropic Claude returns it in content[0].text)
+  let tip = '';
+  if (data && Array.isArray(data.content) && data.content.length > 0 && data.content[0].text) {
+    tip = data.content[0].text.trim();
+    // If the tip is a JSON string, parse it
+    try {
+      const parsed = JSON.parse(tip);
+      if (typeof parsed === 'string') {
+        tip = parsed;
+      }
+    } catch (e) {
+      // Not JSON, keep as is
+    }
+  }
+  res.status(response.status).json({ ...data, tip });
 }
