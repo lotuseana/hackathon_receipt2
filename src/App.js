@@ -35,7 +35,7 @@ function App() {
     fetchBudgets
   } = useBudgets(user);
   
-  const { fetchAllSpendingItems } = useSpendingItems(user);
+  const { fetchAllSpendingItems, fetchSpendingItems } = useSpendingItems(user);
 
   const handleReceiptProcessed = async (newReceiptItems) => {
     setMascotLoading(true);
@@ -206,6 +206,7 @@ function App() {
           onUpdateCategory={handleUpdateCategory}
           budgets={budgets}
           budgetProgress={budgetProgress}
+          fetchSpendingItems={fetchSpendingItems}
         />
       </div>
 
