@@ -128,7 +128,7 @@ export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, ca
       const categoryNames = categories.map(c => c.name).join('", "');
 
       // Step 2: AI Analysis for itemization
-      const msg = await fetch('/api/anthropic', {
+      const msgResponse = await fetch('/api/anthropic', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -136,45 +136,20 @@ export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, ca
           max_tokens: 2048, // Increased tokens for longer receipts
           messages: [{
             role: "user",
-            content: `From the following receipt text, extract the store name, the final total, and a list of all items. For each item, provide its description, price, and classify it into one of the available categories.
-
-Please return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting.
-
-The JSON object must have these keys: "storeName", "total", "items".
-The "items" key must hold an array of objects, where each object has "description", "price", and "category" keys.
-- The "description" should be a short, clean name for the item.
-- The "price" must be a number (e.g., 12.99).
-- The "category" must be one of the provided category names.
-- Explicitly look for a "Tax" or "Sales Tax" line item and classify it under the "Tax" category.
-
-If a value cannot be found, use null. For item categorization, use "Other" if no other category fits.
-
-Available Categories:
-"${categoryNames}"
-
-Receipt Text:
-${text}`
+            content: `From the following receipt text, extract the store name, the final total, and a list of all items. For each item, provide its description, price, and classify it into one of the available categories.\n\nPlease return ONLY a valid JSON object. Do not include any other text, explanations, or markdown formatting.\n\nThe JSON object must have these keys: \"storeName\", \"total\", \"items\".\nThe \"items\" key must hold an array of objects, where each object has \"description\", \"price\", and \"category\" keys.\n- The \"description\" should be a short, clean name for the item.\n- The \"price\" must be a number (e.g., 12.99).\n- The \"category\" must be one of the provided category names.\n- Explicitly look for a \"Tax\" or \"Sales Tax\" line item and classify it under the \"Tax\" category.\n\nIf a value cannot be found, use null. For item categorization, use \"Other\" if no other category fits.\n\nAvailable Categories:\n\"${categoryNames}\"\n\nReceipt Text:\n${text}`
           }],
         })
       });
-      
-      let responseText = await msg.text();
-      console.log("AI raw response:", responseText);
-      let jsonData;
 
+      // Parse the AI response as JSON
+      let aiResponse = await msgResponse.json();
+      let textContent = aiResponse.content?.[0]?.text;
+      console.log("AI text content:", textContent);
+      let jsonData;
       try {
-        jsonData = JSON.parse(responseText);
+        jsonData = JSON.parse(textContent);
       } catch (parseError) {
-        const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          try {
-            jsonData = JSON.parse(jsonMatch[0]);
-          } catch (nestedParseError) {
-             throw new Error("Could not parse the structured data from the AI's response.");
-          }
-        } else {
-          throw new Error("The AI's response was not in the expected format.");
-        }
+        throw new Error("Could not parse the structured data from the AI's response.");
       }
       setStructuredData(jsonData);
 
