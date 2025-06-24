@@ -7,15 +7,48 @@ import { useState, useEffect } from 'react';
 //   console.log('API Key (first 10 chars):', googleCloudVisionApiKey.substring(0, 10) + '...');
 // }
 
+// Utility to resize and compress image before upload
+async function resizeImage(file, maxWidth = 1000, quality = 0.7) {
+  return new Promise((resolve, reject) => {
+    const img = new window.Image();
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      img.src = e.target.result;
+    };
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const scale = Math.min(maxWidth / img.width, 1);
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          resolve(blob);
+        },
+        'image/jpeg',
+        quality
+      );
+    };
+    img.onerror = reject;
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 // Replace GoogleCloudVisionService usage with a function that calls /api/vision
 async function extractTextFromImageViaApi(imageFile) {
-  // Convert image file to base64
+  // Compress and resize image before base64 conversion
+  const compressedBlob = await resizeImage(imageFile, 1000, 0.7);
+  const compressedFile = new File([compressedBlob], imageFile.name, { type: 'image/jpeg' });
+  // Convert compressed image file to base64
   const base64Image = await new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.readAsDataURL(imageFile);
+    reader.readAsDataURL(compressedFile);
     reader.onload = () => resolve(reader.result.split(',')[1]);
     reader.onerror = error => reject(error);
   });
+  console.log('Base64 image length:', base64Image.length);
   const response = await fetch('/api/vision', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
