@@ -136,9 +136,6 @@ function SpendingDashboard({
     }
   };
 
-  const getBudgetForCategory = (categoryId) => {
-    return budgets.find(budget => budget.category_id === categoryId);
-  };
 
   const getProgressForCategory = (categoryId) => {
     return budgetProgress.find(progress => 
