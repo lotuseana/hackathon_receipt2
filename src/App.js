@@ -32,7 +32,6 @@ function App() {
     updateBudget,
     createBudget,
     deleteBudget,
-    getBudgetAlerts,
     fetchBudgets
   } = useBudgets(user);
   

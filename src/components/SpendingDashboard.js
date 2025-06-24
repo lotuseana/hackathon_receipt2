@@ -223,7 +223,6 @@ function SpendingDashboard({
           <ul>
             {categories.map((cat, index) => {
               const progress = getProgressForCategory(cat.id);
-              const budget = getBudgetForCategory(cat.id);
               const categoryAmount = cat.total_spent || 0;
               const progressPercentage = progress ? Math.min(progress.progress_percentage, 100) : 0;
               
