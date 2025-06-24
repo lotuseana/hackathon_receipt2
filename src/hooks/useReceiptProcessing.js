@@ -21,9 +21,14 @@ async function extractTextFromImageViaApi(imageFile) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imageBase64: base64Image })
   });
-  const data = await response.json();
-  // Extract text from the response as needed
-  return data.responses?.[0]?.fullTextAnnotation?.text || '';
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const data = await response.json();
+    return data.responses?.[0]?.fullTextAnnotation?.text || '';
+  } else {
+    const text = await response.text();
+    throw new Error(text);
+  }
 }
 
 export const useReceiptProcessing = (addSpendingItem, onBudgetRefresh = null, categories = [], onReceiptProcessed) => {
@@ -121,6 +126,7 @@ ${text}`
       });
       
       let responseText = await msg.text();
+      console.log("AI raw response:", responseText);
       let jsonData;
 
       try {
