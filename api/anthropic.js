@@ -9,14 +9,20 @@ export default async function handler(req, res) {
   // Log the incoming prompt for debugging
   console.log('Received prompt:', req.body?.prompt);
 
-  // Build the correct payload for Anthropic Claude
-  const payload = {
-    model: 'claude-3-haiku-20240307',
-    max_tokens: 256,
-    messages: [
-      { role: 'user', content: req.body?.prompt || '' }
-    ]
-  };
+  // Support both prompt (simple) and full payload (advanced)
+  let payload;
+  if (req.body && typeof req.body.prompt === 'string') {
+    payload = {
+      model: 'claude-3-haiku-20240307',
+      max_tokens: 256,
+      messages: [
+        { role: 'user', content: req.body.prompt }
+      ]
+    };
+  } else {
+    // Assume the frontend sent a full Anthropic payload (model, max_tokens, messages, etc.)
+    payload = req.body;
+  }
 
   const response = await fetch(anthropicUrl, {
     method: 'POST',
